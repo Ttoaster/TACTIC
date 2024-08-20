@@ -48,3 +48,7 @@ nosetests.xml
 
 # Mac files
 .DS_Store
+
+
+# Babel
+babel/
