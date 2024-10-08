@@ -48,9 +48,13 @@ const TableLayout = React.forwardRef( (props, ref) => {
         group_data(group_column) {
             return group_by(data, group_column);
         },
-        export_csv() {
-            grid_ref.current.export_csv();
+        export_csv(params) {
+            grid_ref.current.export_csv(params);
         },
+        get_csv(params) {
+            return grid_ref.current.get_csv(params);
+        },
+
 
         get_display_data() {
             return grid_ref.current.get_display_data();
@@ -68,6 +72,9 @@ const TableLayout = React.forwardRef( (props, ref) => {
            return  grid_ref.current.show_total();
         },
 
+        reload() {
+           return  load_data();
+        },
     } ) )
 
     const [first_load, set_first_load] = useState(true);
@@ -93,21 +100,56 @@ const TableLayout = React.forwardRef( (props, ref) => {
 
 
     const init = async () => {
-        let element_names = props.element_names || ["code"];
-        set_element_names([...element_names]);
+        let element_names = props.element_names;
 
         let element_definitions = props.element_definitions;
         if (!element_definitions) {
             config_handler = props.config_handler;
-            element_definitions = await get_element_definitions(config_handler);
+            if (config_handler) {
+                element_definitions = await get_element_definitions(config_handler);
+            }
         }
-        await set_element_definitions(element_definitions);
+
+        if (!element_names && element_definitions) {
+            element_names = [];
+            Object.keys(element_definitions).forEach( key => {
+                let definition = element_definitions[key];
+                let element_name = definition.field;
+                if (element_name) {
+                    element_names.push(element_name);
+                }
+            } )
+
+        }
+        else if (!element_definitions) {
+            element_definitions = {}
+            element_names.forEach( element_name => {
+                let definition = { field: element_name };
+                element_definitions[element_name] = definition;
+            } )
+
+        }
+
+        set_element_names([...element_names]);
+
+
+        if (element_definitions) {
+            await set_element_definitions(element_definitions);
+
+            build_column_defs(element_names, element_definitions);
+        }
+        else if (props.column_defs) {
+            set_column_defs(props.column_defs);
+        }
 
         set_search_type(props.search_type);
 
-        build_column_defs(element_names, element_definitions);
-
-        await load_data();
+        if (props.data) {
+            set_data(props.data)
+        }
+        else {
+            await load_data();
+        }
 
     }
 
@@ -123,6 +165,15 @@ const TableLayout = React.forwardRef( (props, ref) => {
         let config_handler = props.config_handler;
 
         kwargs["config_handler"] = config_handler;
+
+        if (props.extra_data) {
+            Object.keys(props.extra_data).forEach( key => {
+                kwargs[key] = props.extra_data[key];
+
+                import_options[key] = props.extra_data[key];
+            } )
+        }
+
 
 
         set_loading(true);
@@ -154,11 +205,14 @@ const TableLayout = React.forwardRef( (props, ref) => {
         let info = ret.info;
         let config = info.config;
         let renderer_params = info.renderer_params;
+        if (!renderer_params) {
+            renderer_params = info.cell_params;
+        }
 
         // convert to AGgrid definitions
         let definitions = spt.react.Config(config, {
             table_ref: ref,
-            renderer_params: props.renderer_params || renderer_params
+            renderer_params: props.renderer_params || props.cell_params|| renderer_params
         });
 
         return definitions;
@@ -230,7 +284,7 @@ const TableLayout = React.forwardRef( (props, ref) => {
             new_sobjects.forEach( item => {
                 data.push(item);
             } )
-            //grid_ref.current.refresh_rows();
+            grid_ref.current.refresh_cells();
 
         } )
         .catch( e => {
@@ -330,15 +384,18 @@ const TableLayout = React.forwardRef( (props, ref) => {
         }
 
 
-        column_defs = [
-            { field: '', maxWidth: 50,
-                headerCheckboxSelection: true,
-                headerCheckboxSelectionFilteredOnly: true,
-                checkboxSelection: true,
-                pinned: "left",
-            },
-        ]
+        column_defs = [];
 
+        if (props.show_row_select == true || typeof(props.show_row_select) == "undefined") {
+            column_defs.push(
+                { field: '', maxWidth: 50,
+                    headerCheckboxSelection: true,
+                    headerCheckboxSelectionFilteredOnly: true,
+                    checkboxSelection: true,
+                    pinned: "left",
+                }
+            )
+        }
 
         new_element_names.forEach( element => {
             let column_def;
@@ -444,8 +501,9 @@ const TableLayout = React.forwardRef( (props, ref) => {
                 name={props.name}
                 ref={edit_modal_ref}
                 on_insert={insert_item}
-                element_names={props.element_names}
+                element_names={element_names}
                 element_definitions={element_definitions}
+                extra_data={props.extra_data}
             />
 
             <EditModal
@@ -553,9 +611,11 @@ const TableLayout = React.forwardRef( (props, ref) => {
                 supress_click={true}
                 auto_height={props.auto_height}
                 height={props.height}
+                header_height={props.header_height}
                 row_height={props.row_height}
                 enable_undo={props.enable_undo}
                 on_column_moved={props.on_column_moved}
+                get_total_data={props.get_total_data}
             />
             :
                 <div>Loading ...</div>
@@ -703,7 +763,7 @@ const EditForm = React.forwardRef( (props, ref) => {
 
     useEffect( () => {
         init();
-    }, [] )
+    }, [props] )
 
 
     const init = async () => {
@@ -716,7 +776,7 @@ const EditForm = React.forwardRef( (props, ref) => {
             if (config_handler) {
                 element_definitions = await get_element_definitions(config_handler);
             }
-            else {
+            else if (props.config) {
                 if (!element_names) {
                     element_names = [];
                     props.config.forEach( item => {
@@ -725,11 +785,28 @@ const EditForm = React.forwardRef( (props, ref) => {
                 }
                 element_definitions = spt.react.Config(props.config, {});
             }
+            else if (element_names) {
+                // If no config is given, create a default one
+                element_definiions = [];
+                element_names.forEach( element_name => {
+                    let definition = {
+                        field: element_name
+                    }
+                    element_definitions.push(definition);
+                } )
+            }
+            else {
+                return;
+            }
         }
 
+        console.log("eeee: ", element_definitions)
+
+        /*
         element_names.forEach( element_name => {
             let definition = props.config
         } )
+        */
         
 
 
@@ -775,6 +852,11 @@ const EditForm = React.forwardRef( (props, ref) => {
                 groups[group_name] = group;
                 group_names.push(group_name);
             }
+
+            if (typeof(definition.value) == "undefined") {
+                definition.value = null;
+            }
+
             group.push(definition);
         } )
 
@@ -797,6 +879,12 @@ const EditForm = React.forwardRef( (props, ref) => {
         let config_handler = props.config_handler;
 
         kwargs["config_handler"] = config_handler;
+
+        if (props.extra_data) {
+            Object.keys(props.extra_data).forEach( key => {
+                kwargs[key] = props.extra_data[key];
+            } )
+        }
 
 
         let server = TACTIC.get();
@@ -822,7 +910,6 @@ const EditForm = React.forwardRef( (props, ref) => {
         let ret = await server.p_execute_cmd( cmd, kwargs )
         let info = ret.info;
         let config = info.config;
-        let renderer_params = info.renderer_params;
 
         // convert to AGgrid definitions
         let definitions = spt.react.Config(config, {});
@@ -1255,12 +1342,19 @@ class SelectEditor {
         }
 
 
+        if (this.value == null) {
+            //return;
+        }
+
+        let value = this.value || values[0] || "";
+        this.value = value || "" // set this if it is using the first value
 
         this.el = (
+            <>
             <TextField
                 label={label}
                 variant={variant}
-                defaultValue={this.value}
+                defaultValue={value}
                 size="small"
                 select
                 style={style}
@@ -1288,8 +1382,8 @@ class SelectEditor {
                     }
                 }}
             >
-                { values.map( (value, index) => (
-                    <MenuItem key={index} value={value}>
+                { values.map( (v, index) => (
+                    <MenuItem key={index} value={v}>
                         <div style={{
                             fontSize: "0.8rem",
                         }}
@@ -1297,6 +1391,7 @@ class SelectEditor {
                     </MenuItem>
                 ) ) }
             </TextField>
+            </>
         );
 
     }
@@ -1348,6 +1443,7 @@ const SelectEditorWdg = (props) => {
     const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
 
     useEffect( () => {
+
         let value = props.value;
         set_value(value);
 
@@ -1358,20 +1454,31 @@ const SelectEditorWdg = (props) => {
         label = Common.capitalize(label);
         set_label(label);
 
-        init();
     }, [] );
 
 
     useEffect( () => {
+        if (!props.error) {
+            return
+        }
+
         init();
     }, [props.error] );
+
+
+    useEffect( () => {
+        if (typeof(value) == "undefined") return
+
+        init();
+    }, [value] );
+
+
 
 
     const init = () => {
 
         let name = props.name;
         let mode = props.mode;
-
 
         let cellEditorParams = props.cellEditorParams || {};
 
@@ -1405,14 +1512,9 @@ const SelectEditorWdg = (props) => {
         select.init(props2);
         let el = select.getEl();
         set_el(el);
+        forceUpdate();
 
     }
-
-
-    useEffect( () => {
-        init();
-        forceUpdate();
-    }, [value] );
 
 
     return (
@@ -1467,10 +1569,18 @@ class InputEditor {
                 }
                 style.padding = "0px 15px";
                 style.width = "max-width";
+
+                if (this.mode == "date") {
+                    marginTop: "-4px"
+                }
+                else {
+                    marginTop: "2px"
+                }
             }
         }
         else {
-            el_style = {};
+            el_style = {
+            };
         }
 
         this.input = document.createElement("div")
@@ -1489,7 +1599,7 @@ class InputEditor {
                     size="small"
                     type={mode}
                     style={style}
-                    InputProps={{ disableUnderline: true }}
+                    InputProps={{ disableUnderline: "true" }}
                     inputProps={{
                         className: "input",
                         style: el_style,
@@ -1552,6 +1662,7 @@ class InputEditor {
         setTimeout( () => {
             let x = document.id(this.input);
             let input = x.getElement(".input");
+            input.select();
             input.focus();
             //input.click();
         }, 250 );
@@ -1611,6 +1722,7 @@ const SimpleCellRenderer = (params) => {
     let value = params.value;
     let label = value;
     let onClick = params.onClick;
+    let onclick = params.onclick;
     let mode = params.mode;
 
     let renderer = params.renderer;
@@ -1635,8 +1747,11 @@ const SimpleCellRenderer = (params) => {
     }
     else if (mode == "%") {
         try {
-            let display_value = value * 100;
-            label = display_value + "%";
+            if (!value) label = "";
+            else {
+                let display_value = value * 100;
+                label = display_value + "%";
+            }
         }
         catch(e) {
             label = "";
@@ -1707,16 +1822,16 @@ const SimpleCellRenderer = (params) => {
 
         if (label == "") label = "&nbsp;";
         inner.appendChild( document.createTextNode(label) );
-        if (onClick) {
+        if (onClick || onclick) {
             inner.style.textDecoration = "underline";
             inner.style.cursor = "pointer";
 
             // provide a link
             inner.addEventListener( "click", e => {
-                onClick(params);
+                if (onclick) onclick(params);
+                if (onClick) onClick(params);
             } )
         }
-
     }
 
 
@@ -1737,12 +1852,12 @@ const SimpleCellRenderer = (params) => {
         icon.style.fontSize = "0.8rem";
 
         icon.addEventListener( "click", e => {
-            //params.show_notes();
             params.api.startEditingCell({
                 rowIndex: params.rowIndex,
                 colKey: params.colDef.field,
             });
             e.stopPropagation();
+
         } );
         el.addEventListener( "mouseenter", e => {
             icon.style.display = "";

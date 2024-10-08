@@ -52,6 +52,9 @@ const DataGrid = React.forwardRef((props, ref) => {
     export_csv(params) {
       export_csv(params);
     },
+    get_csv(params) {
+      return get_csv(params);
+    },
     get_display_data(params) {
       return get_display_data(params);
     },
@@ -73,11 +76,16 @@ const DataGrid = React.forwardRef((props, ref) => {
   const [grid_options, set_grid_options] = useState(null);
   const [onselect, set_onselect] = useState(null);
   const [data, set_data] = useState([]);
+  const [column_defs, set_column_defs] = useState(null);
+  const [group_by, set_group_by] = useState("");
   const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
   const add_filter = filter => {
     api.setQuickFilter(filter);
   };
   const get_filter = column => {
+    if (!api) {
+      return null;
+    }
     let model = api.getFilterModel();
     return model;
   };
@@ -98,7 +106,9 @@ const DataGrid = React.forwardRef((props, ref) => {
         options.type = "startsWith";
       }
 
-      api.setFilterModel(options);
+      let model = {};
+      model[column] = options;
+      api.setFilterModel(model);
     }
 
     api.onFilterChanged();
@@ -148,11 +158,32 @@ const DataGrid = React.forwardRef((props, ref) => {
           let date = Date.parse(column);
           return column;
         } catch (e) {
-          return cell.columnApi.getDisplayNameForColumn(cell.column, null);
+          return api.getDisplayNameForColumn(cell.column, null);
         }
       };
     }
     api.exportDataAsCsv(params);
+  };
+  const get_csv = params => {
+    if (!params) {
+      params = {};
+    }
+    if (!params.processHeaderCallback) {
+      params.processHeaderCallback = cell => {
+        let column = cell.column.colId;
+        try {
+          let parts = column.split("-");
+          if (parts.length != 3) {
+            throw "Not a date";
+          }
+          let date = Date.parse(column);
+          return column;
+        } catch (e) {
+          return api.getDisplayNameForColumn(cell.column, null);
+        }
+      };
+    }
+    return api.getDataAsCsv(params);
   };
   const get_display_data = params => {
     let columns = api.getAllDisplayedColumns();
@@ -278,6 +309,7 @@ const DataGrid = React.forwardRef((props, ref) => {
       pagination: pagination,
       paginationPageSize: pagination_size,
 
+      suppressColumnVirtualisation: false,
       onGridReady: on_grid_ready,
       onFilterChanged: on_filter_changed,
       onCellClicked: on_cell_clicked,
@@ -347,13 +379,7 @@ const DataGrid = React.forwardRef((props, ref) => {
     }
     set_grid_options(gridOptions);
     set_api(gridOptions.api);
-    set_loading(false);
   }, []);
-  useEffect(() => {
-    if (!grid_options) return;
-    if (!api) return;
-    grid_options["rowHeight"] = props.row_height;
-  }, [props.row_height]);
   useEffect(() => {
     if (!grid_options) return;
     if (!grid_name) return;
@@ -372,12 +398,52 @@ const DataGrid = React.forwardRef((props, ref) => {
 
     }
 
-    if (props.data != data) {
-      let data = props.data;
-      api.setRowData(data);
-      set_data(data);
+  }, [grid_name, grid_options]);
+  useEffect(() => {
+    if (!grid_options) return;
+    if (!api) return;
+    if (props.row_height) {
+      api.setGridOption("rowHeight", props.row_height);
     }
-  }, [grid_name, grid_options, props.row_height]);
+
+    if (props.column_defs && props.column_defs != column_defs) {
+      api.setGridOption("columnDefs", props.column_defs);
+      set_column_defs(props.column_defs);
+    }
+    if (props.data && (props.data != data || props.group_by != group_by)) {
+      let data = props.data;
+      set_data(data);
+      if (props.group_by) {
+        if (props.group_by != group_by) {
+          grid_options["group_by"] = props.group_by;
+
+          let columnState = api.columnModel.getColumnState();
+          let sortedColumns = columnState.filter(column => column.sort !== null);
+          if (sortedColumns.length > 0) {
+            clear_filters();
+            clear_sort();
+            let options = {
+              order_list: props.order_list,
+              sort_column: sortedColumns[0].colId
+            };
+            data = group_data(data, props.group_by, options);
+            api.setGridOption('rowData', data);
+          } else {
+            let options = {
+              order_list: props.order_list
+            };
+            data = group_data(data, props.group_by, options);
+            api.setGridOption('rowData', data);
+          }
+        }
+      } else {
+        grid_options["group_by"] = "";
+        api.setGridOption('rowData', data);
+      }
+      set_group_by(props.group_by);
+    }
+    set_loading(false);
+  }, [props.column_defs, props.data, props.group_by, props.row_height, api]);
   const get_row_style = params => {
     let css = {};
     if (props.get_row_style) {
@@ -423,43 +489,6 @@ const DataGrid = React.forwardRef((props, ref) => {
       event.api.redrawRows();
     };
   };
-  useEffect(() => {
-    if (!grid_options) {
-      return;
-    }
-    if (!api) return;
-    if (props.column_defs) {
-      api.setGridOption("columnDefs", props.column_defs);
-    }
-    if (props.data) {
-      let data = props.data;
-      if (props.group_by) {
-        grid_options["group_by"] = props.group_by;
-
-        let columnState = api.columnModel.getColumnState();
-        let sortedColumns = columnState.filter(column => column.sort !== null);
-        if (sortedColumns.length > 0) {
-          clear_filters();
-          clear_sort();
-          let options = {
-            order_list: props.order_list,
-            sort_column: sortedColumns[0].colId
-          };
-          data = group_data(data, props.group_by, options);
-          api.setGridOption('rowData', data);
-        } else {
-          let options = {
-            order_list: props.order_list
-          };
-          data = group_data(data, props.group_by, options);
-          api.setGridOption('rowData', data);
-        }
-      } else {
-        grid_options["group_by"] = "";
-        api.setGridOption('rowData', data);
-      }
-    }
-  }, [props, api]);
 
   const group_data = (items, group_by, options) => {
     if (!options) options = {};
