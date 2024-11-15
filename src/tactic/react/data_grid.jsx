@@ -121,6 +121,17 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
 
     const set_filter = (column, options) => {
+        if (!api) {
+            setTimeout( () => {
+                set_filter(column, options);
+            }, 200 );
+            return;
+        }
+
+        _set_filter(column, options);
+    }
+
+    const _set_filter = (column, options) => {
 
         // Get a reference to the filter instance
         //const filterInstance = api.getFilterInstance(column);
@@ -567,8 +578,8 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
 
         set_grid_options(gridOptions);
-        set_api( gridOptions.api );
 
+        //set_api( gridOptions.api );
 
     }, [] );
 

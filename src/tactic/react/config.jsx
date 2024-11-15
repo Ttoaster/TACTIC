@@ -306,9 +306,9 @@ const Config = (config, options) => {
                     let p = {...e, ...params}
                     return cell_value_changed(p);
                 }
+
             }
             config_def.cellRendererParams = params;
-
 
         }
 

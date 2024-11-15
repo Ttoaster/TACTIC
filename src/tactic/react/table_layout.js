@@ -85,7 +85,7 @@ const TableLayout = React.forwardRef((props, ref) => {
     if (!grid_ref.current) {
       setTimeout(() => {
         set_filter(column, options);
-      }, 100);
+      }, 200);
       return;
     }
     grid_ref.current.set_filter(column, options);
@@ -160,8 +160,10 @@ const TableLayout = React.forwardRef((props, ref) => {
     server.p_execute_cmd(cmd, kwargs).then(ret => {
       let data = ret.info;
       set_data(data);
-      set_loading(false);
       set_first_load(false);
+      setTimeout(() => {
+        set_loading(false);
+      }, 0);
     }).catch(e => {
       set_loading(false);
       alert("TACTIC ERROR: " + e);
@@ -399,7 +401,8 @@ const TableLayout = React.forwardRef((props, ref) => {
       all_columns: props.all_element_names || props.element_names,
       columns: element_names,
       update: build_column_defs,
-      property_modal_ref: property_modal_ref
+      property_modal_ref: property_modal_ref,
+      on_column_add: props.on_column_add
     }), false && React.createElement(Button, {
       size: "small",
       variant: "contained",
@@ -440,8 +443,8 @@ const TableLayout = React.forwardRef((props, ref) => {
     ref: grid_ref,
     name: get_name(),
     column_defs: column_defs,
-    data: data,
-    supress_click: true,
+    data: data
+    ,
     auto_height: props.auto_height,
     height: props.height,
     header_height: props.header_height,
@@ -1257,6 +1260,10 @@ const SimpleCellRenderer = params => {
   } else if (mode == "%") {
     try {
       if (!value) label = "";else {
+        if (typeOf(value) == "string") {
+          value = parseFloat(value.replace(/\D/g, ''));
+          value = value / 100;
+        }
         let display_value = value * 100;
         label = display_value + "%";
       }
@@ -1404,7 +1411,14 @@ const ColumnManagerMenu = React.forwardRef((props, ref) => {
   const column_handle_select = async column => {
     let index = props.columns.indexOf(column);
     if (index == -1) {
-      props.columns.push(column);
+      if (props.on_column_add) {
+        props.on_column_add({
+          column: column,
+          columns: props.columns
+        });
+      } else {
+        props.columns.push(column);
+      }
     } else {
       props.columns.splice(index, 1);
     }
