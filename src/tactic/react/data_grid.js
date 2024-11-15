@@ -89,6 +89,15 @@ const DataGrid = React.forwardRef((props, ref) => {
     return model;
   };
   const set_filter = (column, options) => {
+    if (!api) {
+      setTimeout(() => {
+        set_filter(column, options);
+      }, 200);
+      return;
+    }
+    _set_filter(column, options);
+  };
+  const _set_filter = (column, options) => {
 
     if (options.model) {
       api.setFilterModel(options.model);
@@ -391,7 +400,7 @@ const DataGrid = React.forwardRef((props, ref) => {
       gridOptions.onColumnMoved = props.on_column_moved;
     }
     set_grid_options(gridOptions);
-    set_api(gridOptions.api);
+
   }, []);
   useEffect(() => {
     if (!grid_options) return;
