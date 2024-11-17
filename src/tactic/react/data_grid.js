@@ -448,15 +448,21 @@ const DataGrid = React.forwardRef((props, ref) => {
               order_list: props.order_list,
               sort_column: sortedColumns[0].colId
             };
-            data = group_data(data, props.group_by, options);
+            data = group_data(props.data, props.group_by, options);
             api.setGridOption('rowData', data);
           } else {
             let options = {
               order_list: props.order_list
             };
-            data = group_data(data, props.group_by, options);
+            data = group_data(props.data, props.group_by, options);
             api.setGridOption('rowData', data);
           }
+        } else {
+          let options = {
+            order_list: props.order_list
+          };
+          data = group_data(props.data, props.group_by, options);
+          api.setGridOption('rowData', data);
         }
       } else {
         grid_options["group_by"] = "";
