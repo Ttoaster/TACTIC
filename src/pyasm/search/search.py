@@ -3454,9 +3454,13 @@ class SObject(object):
         return info
 
 
+
     def set_value(self, name, value, quoted=True, temp=False, no_exception=False):
         '''set the value of this sobject. It is
         not commited to the database'''
+
+        # opportunity for sobject to prevalidate data
+        self.validate_set_value(name, value)
 
         if name.find("->") != -1:
             parts = name.split("->")
@@ -4005,6 +4009,10 @@ class SObject(object):
         elif self.get_id() in ['-1','']:
             return True
         return False
+
+    def validate_set_value(self, name, value):
+        '''allows derived classes to validate the columns value being set'''
+        pass
 
 
     def validate(self):
