@@ -17,6 +17,10 @@ const Config = (config, options) => {
     let column = params.column.colId;
 
     data[column] = params.newValue;
+    let selected = table_ref.current.get_selected_nodes();
+    selected.forEach(node => {
+      node.data[column] = params.newValue;
+    });
     table_ref.current.save(data, column);
   };
   let cell_value_changed = options.cell_value_changed;

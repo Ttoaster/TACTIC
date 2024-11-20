@@ -22,6 +22,12 @@ const Config = (config, options) => {
         //console.log("params: ", params);
         data[column] = params.newValue;
 
+        let selected = table_ref.current.get_selected_nodes();
+        selected.forEach( node => {
+            node.data[column] = params.newValue;
+        } )
+
+
         table_ref.current.save(data, column);
     }
 
