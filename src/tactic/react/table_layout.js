@@ -93,7 +93,7 @@ const TableLayout = React.forwardRef((props, ref) => {
 
   useEffect(() => {
     init();
-  }, [props.element_names]);
+  }, [props.element_names, props.get_kwargs]);
   const init = async () => {
     let element_names = props.element_names;
     let element_definitions = props.element_definitions;
@@ -872,6 +872,7 @@ class SelectEditor {
     let values = params.values || [];
     let helpers = params.helpers || [];
     let colors = params.colors || {};
+    let default_value = params.default_value || null;
     let onblur = params.onblur;
     let error = params.error;
     if (typeof labels == "string") {
@@ -946,7 +947,7 @@ class SelectEditor {
     }
     if (this.value == null) {
     }
-    let value = this.value || values[0] || "";
+    let value = this.value || default_value || values[0] || "";
     this.value = value || "";
 
     this.el = React.createElement(React.Fragment, null, React.createElement(TextField, {

@@ -259,7 +259,7 @@ class TableSaveCmd(Command):
 
                         format = config.get("format")
                         if format == "$":
-                            value = re.sub(r'\D', '', value)
+                            value = re.sub(r'[^\d.]', '', value)
                             value = float(value)
 
                         sobject.set_value(update_column, value)
