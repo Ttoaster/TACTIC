@@ -10,7 +10,8 @@
 #
 #
 
-__all__ = ["ServiceException", "BaseXMLRPC", "CreateSetAssetsCmd"]
+#__all__ = ["ServiceException", "BaseXMLRPC", "CreateSetAssetsCmd"]
+__all__ = ["ServiceException", "BaseXMLRPC"]
 
 import shutil, os
 
@@ -18,7 +19,7 @@ from pyasm.common import System, TacticException
 from pyasm.command import Command
 
 from pyasm.checkin import FileGroupCheckin
-from pyasm.prod.checkin import *
+#from pyasm.prod.checkin import *
 from pyasm.prod.biz import *
 from pyasm.prod.load import *
 from pyasm.prod.queue import Queue
@@ -27,22 +28,25 @@ from pyasm.web.app_server import XmlrpcServer
 from pyasm.web import WebContainer
 from pyasm.biz import Project, Snapshot
 
+
+# DEPRECATED
+
 class ServiceException(Exception):
     pass
 
 class BaseXMLRPC(XmlrpcServer):
 
-    METHODS = ['get_loader_xml',       \
-               'get_shot_loader_xml',  \
-               'update_session',       \
-               'create_assets',        \
-               'get_update_xml',       \
-               'create_set',           \
-               'checkin_set',          \
-               'checkin_shot_set',     \
-               'get_instances_by_shot_xml', \
-               'checkin_flash_shot',    \
-               'set_project'            \
+    METHODS = ['get_loader_xml', 
+               'get_shot_loader_xml',
+               'update_session',
+               #'create_assets',
+               'get_update_xml',
+               #'create_set',
+               #'checkin_set',
+               #'checkin_shot_set',
+               #'get_instances_by_shot_xml',
+               #'checkin_flash_shot',
+               'set_project'
             ]
 
 
@@ -210,6 +214,8 @@ class BaseXMLRPC(XmlrpcServer):
     update_session.exposed = True
 
 
+
+    """
     def create_assets(self, ticket, project_code, set_code, names):
 
         try:
@@ -227,8 +233,10 @@ class BaseXMLRPC(XmlrpcServer):
         return asset_codes
 
     create_assets.exposed = True
+    """
 
-       
+      
+    """
     def create_set(self, ticket, project_code, set_name, cat_name, selected):
         '''an xml to create a new set node'''
         xml = ''
@@ -258,8 +266,10 @@ class BaseXMLRPC(XmlrpcServer):
         return [xml, asset_code]
 
     create_set.exposed = True
+    """
 
 
+    """
     def checkin_set(self, ticket, project_code, asset_code, context):
         snapshot_code = ''
         try:
@@ -278,8 +288,10 @@ class BaseXMLRPC(XmlrpcServer):
         return snapshot_code
 
     checkin_set.exposed = True
+    """
 
 
+    """
     def checkin_shot_set(self, ticket, project_code, shot_code, process, context, \
              checkin_as, currency, unknown_ref, desc):
         snapshot_code = ''
@@ -313,18 +325,12 @@ class BaseXMLRPC(XmlrpcServer):
         return snapshot_code
 
     checkin_shot_set.exposed = True
-
-
-    """
-    def get_snapshot_file(self, search_key, context):
-        '''gets the last checked in snapshot for this sobject and context
-        and retrieves the files already checked in'''
-    get_snapshot_file.exposed = True
     """
 
 
 
 
+    """
     def get_instances_by_shot_xml(self, ticket, project_code, shot_code, with_template=True, with_audio=True):
         ''' retrieve flash asset instances in a shot'''
         try:
@@ -398,8 +404,9 @@ class BaseXMLRPC(XmlrpcServer):
 
         return uber_xml
     get_instances_by_shot_xml.exposed = True
+    """
 
-
+    """
     def _append_xml(self, asset, context, inst_mode, uber_xml ):
         '''append xml to the uber_xml'''
         snapshot = Snapshot.get_latest_by_sobject(asset, context)
@@ -415,8 +422,9 @@ class BaseXMLRPC(XmlrpcServer):
         nodes =  xml.get_nodes("execute/*")
         for node in nodes:
             uber_xml.append( "    %s" % xml.to_string(node, pretty=False))
+    """
 
-
+    """
     def checkin_textures(self, ticket, project_code, asset_code, paths, file_ranges, node_names, attrs, use_handoff_dir=False, md5s=[]):
         '''creates a number of textures under a single asset'''
         new_paths = []
@@ -445,9 +453,10 @@ class BaseXMLRPC(XmlrpcServer):
         return new_paths, file_code_list
  
     checkin_textures.exposed = True
+    """
 
 
-
+    """
     def checkin_flash_shot(self, ticket, project_code,shot_code, context, comment):
             
         snapshot_code = ''
@@ -466,6 +475,8 @@ class BaseXMLRPC(XmlrpcServer):
         return snapshot_code 
 
     checkin_flash_shot.exposed = True
+    """
+
 
     def get_queue(self, ticket):
         execute_xml = "<execute/>"
@@ -525,7 +536,7 @@ class BaseXMLRPC(XmlrpcServer):
 
 
 
-       
+"""      
 class CreateSetAssetsCmd(Command):
     '''This command checkins everything included in a set as a new asset'''
     def __init__(self):
@@ -627,7 +638,7 @@ class CheckinFramesXMLRPC(Command):
         checkin.execute()
 
         self.description = "Checked in frames %s" % file_range.get_key()
-
+"""
 
 
 
