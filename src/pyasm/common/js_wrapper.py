@@ -13,7 +13,7 @@
 
 __all__ = ['JsWrapper']
 
-import tacticenv
+#import tacticenv
 
 
 from pyasm.common import Environment, jsonloads, jsondumps, Container
