@@ -13,8 +13,6 @@ from __future__ import print_function
 
 __all__ = ['Workflow', 'WorkflowException', 'BaseWorkflowNodeHandler', 'BaseProcessTrigger', 'ProcessStatusTrigger', 'CustomProcessConfig', 'WorkflowManualNodeHandler']
 
-import tacticenv
-
 from pyasm.common import Common, Config, jsondumps, jsonloads, TacticException, Container, Environment
 from pyasm.command import Trigger, Command
 from pyasm.search import SearchType, Search, SObject

@@ -39,4 +39,6 @@ from .subprocess_trigger import *
 
 from .site_upgrade import *
 
+from .kronos import *
+from .scheduler import *
 

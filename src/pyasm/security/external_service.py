@@ -12,7 +12,10 @@
 
 __all__ = ['ExternalService']
 
-import tacticenv
+try:
+    import tacticenv
+except:
+    pass
 
 import os
 

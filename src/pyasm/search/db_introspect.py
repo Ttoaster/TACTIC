@@ -12,7 +12,10 @@
 
 __all__ = ['DbIntrospect']
 
-import tacticenv
+try:
+    import tacticenv
+except:
+    pass
 
 from pyasm.common import Common
 from pyasm.search import Search, SearchType, DbResource, DbContainer

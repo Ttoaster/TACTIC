@@ -1,5 +1,8 @@
 
-import tacticenv
+try:
+    import tacticenv
+except:
+    pass
 
 import re
 try:

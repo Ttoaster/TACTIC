@@ -12,8 +12,6 @@
 
 __all__ = ["BaseCache", "SearchTypeCache", "CacheContainer", "CustomCache"]
 
-import tacticenv
-
 import sys, time, datetime, types
 from dateutil import parser
 
