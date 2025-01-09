@@ -17,5 +17,3 @@ from .snapshot_builder import *
 from .repo import *
 from .metadata import *
 
-from .perforce import *
-

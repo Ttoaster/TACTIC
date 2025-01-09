@@ -392,8 +392,8 @@ class Search(Base):
     def get_statement(self):
         return self.select.get_statement()
 
-    def add_column(self, column, distinct=False, table=None, as_column=None):
-        self.select.add_column(column, distinct, table=table, as_column=as_column)
+    def add_column(self, column, distinct=False, table=None, as_column=None, quoted=True):
+        self.select.add_column(column, distinct, table=table, as_column=as_column, quoted=quoted)
 
 
     def get_columns(self, table=None, show_hidden=False):
@@ -2162,6 +2162,20 @@ class Search(Base):
             sobjects_list.append(sobject_dict)
         return sobjects_list
     get_sobject_dicts = classmethod(get_sobject_dicts)
+
+
+    def get_dataframe(self):
+        '''do a search and get the dataframe'''
+        statement = search.get_statement()
+        sql = self.get_sql()
+        results = sql.do_query(statement)
+
+        columns = search.get_columns()
+
+        import pandas as pd
+        df = pd.DataFrame(results, columns=columns)
+        return df
+
 
 
 

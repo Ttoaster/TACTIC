@@ -124,7 +124,7 @@ const TableLayout = React.forwardRef( (props, ref) => {
 
     useEffect( () => {
         init();
-    }, [props.element_names] )
+    }, [props.element_names, props.get_kwargs] )
 
 
     const init = async () => {
@@ -1264,6 +1264,7 @@ class SelectEditor {
         let values = params.values || [];
         let helpers = params.helpers || [];
         let colors = params.colors || {};
+        let default_value = params.default_value || null;
 
         let onblur = params.onblur;
 
@@ -1393,7 +1394,8 @@ class SelectEditor {
             //return;
         }
 
-        let value = this.value || values[0] || "";
+
+        let value = this.value || default_value || values[0] || "";
         this.value = value || "" // set this if it is using the first value
 
         this.el = (

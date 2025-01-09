@@ -197,8 +197,14 @@ class Config(Base):
 
     def get_xml_data(use_cache=True):
         '''read the main framwork configuration file'''
+        # parse only once
+        XML_KEY = "Config:xml_data"
+        if use_cache:
+            xml_data = Container.get(XML_KEY)
+            if xml_data:
+                return xml_data
+
         config_path = Config.get_config_path()
-        #print("config: ", config_path)
 
         xml_data = Xml()
 
@@ -208,31 +214,37 @@ class Config(Base):
         else:
             xml_data.read_file(config_path, cache=use_cache)
 
+        Container.put(XML_KEY, xml_data)
+
         return xml_data
 
-        # parse only once
-        #XML_KEY = "Config:xml_data"
-        #xml_data = Container.get(Config.XML_KEY)
-        #if xml_data == None:
-        #    config_path = Config.get_config_path()
-        #    xml_data = Xml()
-        #    xml_data.read_file(config_path)
-        #    Container.put(Config.XML_KEY, xml_data)
-        #return xml_data
 
     get_xml_data = staticmethod(get_xml_data)
 
 
     def get_default_config_path():
+
+        # first look in the home folder
+
+        # then look in /etc (if linux)
+
         # use the default
         from .environment import Environment
-        install_dir = Environment.get_install_dir()
+        base_dir = Environment.get_install_dir()
+        if not base_dir:
+            parts = __file__.split("/")
+            parts.pop()
+            parts.pop()
+            base_dir = "/".join(parts)
+        else:
+            base_dir = "%s/src/install" % base_dir
+
         if os.name == 'nt':
             filename = "standalone_win32-conf.xml"
         else:
             filename = "standalone_linux-conf.xml"
 
-        path = "%s/src/install/config/%s" % (install_dir, filename)
+        path = "%s/config/%s" % (base_dir, filename)
         return path
     get_default_config_path = staticmethod(get_default_config_path)
 
@@ -318,7 +330,6 @@ class Config(Base):
 
         if no_exception == False and not os.path.exists(path):
             raise TacticException("Config path [%s] does not exist" % path)
-
 
         return path
 

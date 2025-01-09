@@ -13,7 +13,6 @@
 __all__ = ["CsvParser", "AsciiEncodeException"]
 
 import csv, os
-import tacticenv
 from pyasm.common import Common
 
 class AsciiEncodeException(Exception):
@@ -143,13 +142,5 @@ class CsvParser(object):
         if input_file:
             input_file.close()
 
-if __name__ == '__main__':
-    from pyasm.security import Batch
-    batch = Batch(login_code='admin')
-    parser = CsvParser('/home/tactic/customer_data.csv')
-    parser.set_encoder('utf-8')
-    parser.parse()
-    data = parser.get_data()
-    print(data)
 
 

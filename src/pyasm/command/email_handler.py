@@ -12,8 +12,6 @@
 
 __all__ = ["EmailHandler", 'TaskAssignEmailHandler', 'NoteEmailHandler', 'GeneralNoteEmailHandler', 'GeneralPublishEmailHandler','TaskStatusEmailHandler', 'SubmissionStatusEmailHandler', 'SubmissionEmailHandler', 'SubmissionNoteEmailHandler', 'TestEmailHandler']
 
-import tacticenv
-
 from pyasm.common import Environment, Xml, Date
 from pyasm.security import Login, LoginGroup, Sudo
 from pyasm.search import Search, SObject, SearchType

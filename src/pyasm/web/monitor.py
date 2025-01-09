@@ -16,9 +16,14 @@ __all__ = ['TacticThread', 'TacticTimedThread', 'WatchFolderThread', 'ASyncThrea
 
 
 import os, sys, threading, time, subprocess, re, six
-import tacticenv
-tactic_install_dir = tacticenv.get_install_dir()
-tactic_site_dir = tacticenv.get_site_dir()
+
+from pyasm.common import Environment
+tactic_install_dir = Environment.get_install_dir()
+try:
+    import tacticenv
+except:
+    pass
+#tactic_install_dir = tacticenv.get_install_dir()
 app_server = "cherrypy"
 
 
@@ -484,7 +489,7 @@ class TacticTimedThread(threading.Thread):
                 break
 
 
-from tactic.command import Scheduler, SchedulerTask
+from pyasm.command import Scheduler, SchedulerTask
 from pyasm.biz import Project
 class TimedTask(SchedulerTask):
     def __init__(self, **kwargs):
