@@ -2,8 +2,6 @@ let useEffect = React.useEffect;
 let useState = React.useState;
 let useReducer = React.useReducer;
 
-const Common = spt.react.Common;
-
 const DataGrid = React.forwardRef( (props, ref) => {
 
     React.useImperativeHandle( ref, () => ({
@@ -446,7 +444,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
             pagination = props.pagination;
         }
         else {
-            pagination: props.auto_height ? false : true;
+            pagination = props.auto_height ? false : true;
         }
 
 
@@ -487,9 +485,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
           suppressRowClickSelection: true,
 
           suppressDragLeaveHidesColumns: true,
-          onColumnVisible: e => {
-              //console.log("e: ", e)
-          },
+          onColumnVisible: e => {},
 
 
           getRowStyle: get_row_style,

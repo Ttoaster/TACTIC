@@ -28,6 +28,9 @@ class React():
         jsx_path = "%s/widget/notes.jsx" % react_dir
         ReactWdg.init_react(widget, jsx_path)
 
+        jsx_path = "%s/widget/modal.jsx" % react_dir
+        ReactWdg.init_react(widget, jsx_path)
+
         jsx_path = "%s/import_data.jsx" % react_dir
         ReactWdg.init_react(widget, jsx_path)
 

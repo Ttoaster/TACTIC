@@ -132,13 +132,13 @@ const TableLayout = React.forwardRef( (props, ref) => {
 
         let element_definitions = props.element_definitions;
         if (!element_definitions) {
-            config = props.config;
+            let config = props.config;
             if (config) {
                 // convert to AGgrid definitions
                 element_definitions = spt.react.Config(config, {});
             }
             else {
-                config_handler = props.config_handler;
+                let config_handler = props.config_handler;
                 if (config_handler) {
                     element_definitions = await get_element_definitions(config_handler, props.extra_data);
                 }
@@ -528,8 +528,7 @@ const TableLayout = React.forwardRef( (props, ref) => {
 
 
 
-    on_select = (selected) => {
-    }
+    const on_select = selected => { }
 
 
 
@@ -1901,7 +1900,7 @@ const SimpleCellRenderer = (params) => {
         }
 
 
-        if (label == "") label = "&nbsp;";
+        if (label == "") label = "";
         inner.appendChild( document.createTextNode(label) );
         if (onClick || onclick) {
             inner.style.textDecoration = "underline";
@@ -1929,7 +1928,7 @@ const SimpleCellRenderer = (params) => {
         icon.style.position = "absolute";
         icon.style.opacity = 0.4;
         icon.style.right = "-5px";
-        icon.style.top = "-3px";
+        icon.style.top = "0px";
         icon.style.fontSize = "0.8rem";
 
         icon.addEventListener( "click", e => {

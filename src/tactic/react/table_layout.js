@@ -90,7 +90,6 @@ const TableLayout = React.forwardRef((props, ref) => {
     }
     grid_ref.current.set_filter(column, options);
   };
-
   useEffect(() => {
     init();
   }, [props.element_names, props.get_kwargs]);
@@ -98,11 +97,11 @@ const TableLayout = React.forwardRef((props, ref) => {
     let element_names = props.element_names;
     let element_definitions = props.element_definitions;
     if (!element_definitions) {
-      config = props.config;
+      let config = props.config;
       if (config) {
         element_definitions = spt.react.Config(config, {});
       } else {
-        config_handler = props.config_handler;
+        let config_handler = props.config_handler;
         if (config_handler) {
           element_definitions = await get_element_definitions(config_handler, props.extra_data);
         }
@@ -181,7 +180,6 @@ const TableLayout = React.forwardRef((props, ref) => {
     if (!renderer_params) {
       renderer_params = info.cell_params;
     }
-
     let definitions = spt.react.Config(config, {
       table_ref: ref,
       renderer_params: props.renderer_params || props.cell_params || renderer_params
@@ -189,7 +187,6 @@ const TableLayout = React.forwardRef((props, ref) => {
     return definitions;
   };
   const save = (item, column) => {
-
     let selected = grid_ref.current.get_selected_nodes();
     let items = [];
     if (selected.length) {
@@ -228,7 +225,6 @@ const TableLayout = React.forwardRef((props, ref) => {
       let info = ret.info;
       let updated_sobjects = info.updated_sobjects;
       let new_sobjects = info.new_sobjects || [];
-
       new_sobjects.forEach(item => {
         data.push(item);
       });
@@ -238,12 +234,10 @@ const TableLayout = React.forwardRef((props, ref) => {
     });
   };
   const insert_item = item => {
-
     let cmd = props.save_cmd;
     if (!cmd) {
       cmd = "tactic.react.TableSaveCmd";
     }
-
     let inserts = [];
     let mode = item.__search_key__ ? "edit" : "insert";
     let code = Common.generate_key(12);
@@ -266,7 +260,6 @@ const TableLayout = React.forwardRef((props, ref) => {
     server.p_execute_cmd(cmd, kwargs).then(ret => {
       let info = ret.info;
       let sobjects = info.sobjects || [];
-
       load_data();
     }).catch(e => {
       alert("TACTIC ERROR: " + e);
@@ -340,7 +333,6 @@ const TableLayout = React.forwardRef((props, ref) => {
       alert("TACTIC ERROR: " + e);
     });
   };
-
   const [import_options, set_import_options] = useState({
     search_type: props.search_type
   });
@@ -367,7 +359,7 @@ const TableLayout = React.forwardRef((props, ref) => {
     });
     import_data_modal_ref.current.show();
   };
-  on_select = selected => {};
+  const on_select = selected => {};
   const get_shelf = () => {
     return React.createElement(React.Fragment, null, React.createElement(EditModal, {
       name: props.name,
@@ -386,8 +378,7 @@ const TableLayout = React.forwardRef((props, ref) => {
     }), React.createElement(DeleteModal, {
       name: "Delete",
       ref: delete_modal_ref,
-      grid_ref: grid_ref
-      ,
+      grid_ref: grid_ref,
       element_names: property_names,
       element_definitions: property_definitions,
       load_data: load_data
@@ -443,8 +434,7 @@ const TableLayout = React.forwardRef((props, ref) => {
     ref: grid_ref,
     name: get_name(),
     column_defs: column_defs,
-    data: data
-    ,
+    data: data,
     auto_height: props.auto_height,
     height: props.height,
     header_height: props.header_height,
@@ -576,9 +566,7 @@ const EditForm = React.forwardRef((props, ref) => {
         return;
       }
     }
-
     let filtered = [];
-
     element_names.forEach(element_name => {
       let definition = element_definitions[element_name];
       if (!definition) {
@@ -601,7 +589,6 @@ const EditForm = React.forwardRef((props, ref) => {
     }
     set_element_names(filtered);
     set_element_definitions(element_definitions);
-
     let groups = {};
     let group_names = [];
     filtered.forEach(element_name => {
@@ -620,9 +607,7 @@ const EditForm = React.forwardRef((props, ref) => {
     });
     set_groups(groups);
     set_group_names(group_names);
-
   };
-
   const load_data = async () => {
     let cmd = props.get_cmd;
     if (!cmd) {
@@ -653,7 +638,6 @@ const EditForm = React.forwardRef((props, ref) => {
     let ret = await server.p_execute_cmd(cmd, kwargs);
     let info = ret.info;
     let config = info.config;
-
     let definitions = spt.react.Config(config, {});
     return definitions;
   };
@@ -817,7 +801,6 @@ const DeleteModal = React.forwardRef((props, ref) => {
         search_keys.push(item_data.__search_key__);
         data.splice(item.rowIndex, 1);
       });
-
       let server = TACTIC.get();
       let cmd = "tactic.react.DeleteCmd";
       let kwargs = {
@@ -926,7 +909,6 @@ class SelectEditor {
         fullWidth: true,
         onClick: e => {
           this.value = value;
-
           e.name = name;
           if (params.onchange) {
             params.onchange(e, this.value);
@@ -984,11 +966,9 @@ class SelectEditor {
       }, labels[0])));
       return;
     }
-    if (this.value == null) {
-    }
+    if (this.value == null) {}
     let value = this.value || default_value || values[0] || "";
     this.value = value || "";
-
     this.el = React.createElement(React.Fragment, null, React.createElement(TextField, {
       label: label,
       variant: variant,
@@ -1008,7 +988,6 @@ class SelectEditor {
       },
       onChange: e => {
         this.value = e.target.value;
-
         e.name = name;
         if (params.onchange) {
           params.onchange(e, this.value);
@@ -1035,16 +1014,13 @@ class SelectEditor {
   getEl() {
     return this.el;
   }
-
   getGui() {
     this.root.render(this.el);
     return this.input;
   }
-
   getValue() {
     return this.value;
   }
-
   afterGuiAttached() {}
 }
 const SelectEditorWdg = props => {
@@ -1169,8 +1145,7 @@ class InputEditor {
       multiline: rows > 1 ? true : false,
       error: error,
       helperText: helper,
-      minRows: rows
-      ,
+      minRows: rows,
       fullWidth: true,
       size: "small",
       type: mode,
@@ -1188,7 +1163,6 @@ class InputEditor {
       },
       onChange: e => {
         this.value = e.target.value;
-
         e.name = name;
         if (params.onchange) {
           params.onchange(e, this.value);
@@ -1220,14 +1194,12 @@ class InputEditor {
     this.root.render(this.el);
     return this.input;
   }
-
   getValue() {
     if (this.mode == "date") {
       this.value = Date.parse(this.value);
     }
     return this.value;
   }
-
   afterGuiAttached() {
     setTimeout(() => {
       let x = document.id(this.input);
@@ -1332,7 +1304,6 @@ const SimpleCellRenderer = params => {
     }
   }
   let colors = params.colors || {};
-
   let el = document.createElement("div");
   let inner;
   if (renderer) {
@@ -1350,7 +1321,6 @@ const SimpleCellRenderer = params => {
     } else {
       inner.style.padding = "0px 3px";
     }
-
     if (params.mode == "color") {
       inner.style.background = value;
     }
@@ -1358,19 +1328,17 @@ const SimpleCellRenderer = params => {
     if (color) {
       inner.style.background = color;
     }
-    if (label == "") label = "&nbsp;";
+    if (label == "") label = "";
     inner.appendChild(document.createTextNode(label));
     if (onClick || onclick) {
       inner.style.textDecoration = "underline";
       inner.style.cursor = "pointer";
-
       inner.addEventListener("click", e => {
         if (onclick) onclick(params);
         if (onClick) onClick(params);
       });
     }
   }
-
   if (editable) {
     let icon = document.createElement("i");
     el.appendChild(icon);
@@ -1382,7 +1350,7 @@ const SimpleCellRenderer = params => {
     icon.style.position = "absolute";
     icon.style.opacity = 0.4;
     icon.style.right = "-5px";
-    icon.style.top = "-3px";
+    icon.style.top = "0px";
     icon.style.fontSize = "0.8rem";
     icon.addEventListener("click", e => {
       params.api.startEditingCell({
@@ -1554,7 +1522,6 @@ const ColumnCreateModal = React.forwardRef((props, ref) => {
     }
   }, "Create"))));
 });
-
 spt.react.TableLayout = TableLayout;
 spt.react.EditForm = EditForm;
 spt.react.EditModal = EditModal;

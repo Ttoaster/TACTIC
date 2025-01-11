@@ -1,4 +1,26 @@
 
+/*
+import { useEffect, useState, useRef, useReducer, useCallback } from 'react';
+
+import {
+    Box,
+    TextField,
+    Modal,
+    Butto,
+    IconButton,
+    FormControl,
+    Menu,
+    MenuItem,
+    Select,
+    Chip,
+    Switch,
+    LinearProgress,
+    Checkbox,
+} from '@mui/material';
+*/
+
+
+
 /* TACTIC */
 const useEffect = React.useEffect;
 const useState = React.useState;
@@ -20,11 +42,12 @@ const Switch = MaterialUI.Switch;
 const LinearProgress = MaterialUI.LinearProgress;
 const Checkbox = MaterialUI.Checkbox;
 
+
 const Pages = React.forwardRef((props, ref) => {
 
     React.useImperativeHandle( ref, () => ({
         next() {
-            return next();
+            return next_page();
         },
     } ) )
 
@@ -322,4 +345,10 @@ const Pages = React.forwardRef((props, ref) => {
 
 
 spt.react.Pages = Pages;
+
+/*
+export default Pages;
+export { Pages };
+*/
+
 
