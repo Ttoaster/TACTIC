@@ -12,7 +12,11 @@
 
 __all__ = ["EnvironmentException", "Environment"]
 
-import tacticenv
+
+try:
+    import tacticenv
+except:
+    tacticenv = None
 
 
 
@@ -227,14 +231,14 @@ class Environment(Base):
     def get_install_dir():
         '''get the installation directory for the entire framework'''
         #return Config.get_value("install","install_dir")
-        return os.environ["TACTIC_INSTALL_DIR"]
+        return os.environ.get("TACTIC_INSTALL_DIR") or ""
     get_install_dir = staticmethod(get_install_dir)
 
 
     def get_site_dir():
         '''get the site dir'''
         #return Config.get_value("install","site_dir")
-        return os.environ["TACTIC_SITE_DIR"]
+        return os.environ.get("TACTIC_SITE_DIR") or ""
     get_site_dir = staticmethod(get_site_dir)
 
     def get_app_server():
@@ -447,10 +451,22 @@ class Environment(Base):
             if data_dir:
                 return data_dir
 
+        data_dir = os.environ.get("TACTIC_DATA_DIR") or ""
+        if data_dir:
+            Container.put("Environment:data_dir", data_dir)
+            return data_dir
+
+        # linux
         install_dir = Environment.get_install_dir()
-        dirs = install_dir.split('/')
-        dirs.pop()
-        base_dir = '/'.join(dirs) 
+        base_dir = None
+        if install_dir:
+            dirs = install_dir.split('/')
+            dirs.pop()
+            base_dir = '/'.join(dirs) 
+        else:
+            base_dir = "/opt/tactic/tactic_data"
+
+
         if hasattr(tacticenv, 'get_data_dir'):
             # verify user-defined data dir is under the base dir for Linux and ProgramData for Windows
             data_dir = tacticenv.get_data_dir()
@@ -459,9 +475,6 @@ class Environment(Base):
                 if os.name == 'nt':
                     data_dir = 'C:/ProgramData/Tactic/Data'
                 else:    
-                    install_dir = Environment.get_install_dir()
-                    dirs = install_dir.split('/')
-                    dirs.pop()
                     data_dir = '%s/tactic_data' % base_dir
             else:
                 data_dir = data_dir.replace("\\", "/")
@@ -475,9 +488,6 @@ class Environment(Base):
             if os.name == 'nt':
                 data_dir = 'C:/ProgramData/Tactic/Data'
             else:    
-                install_dir = Environment.get_install_dir()
-                dirs = install_dir.split('/')
-                dirs.pop()
                 data_dir = '%s/tactic_data' % base_dir
             
             Container.put("Environment:data_dir", data_dir)

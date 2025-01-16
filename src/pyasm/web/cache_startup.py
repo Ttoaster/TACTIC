@@ -12,11 +12,9 @@
 
 __all__ = ['CacheStartup', 'TableInfoCache']
 
-import tacticenv
-
 from pyasm.common import Config, Common, Container, GlobalContainer
 from pyasm.search import DbContainer, DatabaseImpl, DbResource
-from tactic.command import Scheduler, SchedulerTask
+from pyasm.command import Scheduler, SchedulerTask
 from pyasm.security import Batch
 from pyasm.biz import BaseCache, CacheContainer, SearchTypeCache
 
@@ -242,7 +240,7 @@ class CacheStartup(object):
 
 
         
-
+"""
 if __name__ == '__main__':
     Batch(project_code='cg')
     cmd = CacheStartup()
@@ -258,7 +256,7 @@ if __name__ == '__main__':
 
     cache = CacheContainer.get("sthpw_column_info")
     print("cache value: ", cache.get_value_by_key('data', 'login'))
-
+"""
 
 
 

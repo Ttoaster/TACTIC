@@ -9,7 +9,7 @@
 #
 #
 #
-import tacticenv
+#import tacticenv
 
 __all__ = ['SPTDate']
 

@@ -392,8 +392,8 @@ class Search(Base):
     def get_statement(self):
         return self.select.get_statement()
 
-    def add_column(self, column, distinct=False, table=None, as_column=None):
-        self.select.add_column(column, distinct, table=table, as_column=as_column)
+    def add_column(self, column, distinct=False, table=None, as_column=None, quoted=True):
+        self.select.add_column(column, distinct, table=table, as_column=as_column, quoted=quoted)
 
 
     def get_columns(self, table=None, show_hidden=False):
@@ -2164,6 +2164,20 @@ class Search(Base):
     get_sobject_dicts = classmethod(get_sobject_dicts)
 
 
+    def get_dataframe(self):
+        '''do a search and get the dataframe'''
+        statement = search.get_statement()
+        sql = self.get_sql()
+        results = sql.do_query(statement)
+
+        columns = search.get_columns()
+
+        import pandas as pd
+        df = pd.DataFrame(results, columns=columns)
+        return df
+
+
+
 
     def get_count(self, no_exception=False):
         '''Get the number of sobjects that this search will retrieve'''
@@ -3360,7 +3374,7 @@ class SObject(object):
         cutoff = 10*1024
         if length_before > cutoff:
             data = Common.compress_transaction(data)
-        
+    
         self.set_value(name, data)
 
 
@@ -3454,9 +3468,13 @@ class SObject(object):
         return info
 
 
+
     def set_value(self, name, value, quoted=True, temp=False, no_exception=False):
         '''set the value of this sobject. It is
         not commited to the database'''
+
+        # opportunity for sobject to prevalidate data
+        self.validate_set_value(name, value)
 
         if name.find("->") != -1:
             parts = name.split("->")
@@ -3500,6 +3518,10 @@ class SObject(object):
             else:
                 return
 
+
+        # NOTE: this should be pretty quick, but could use some optimization
+        column_type = SearchType.get_column_type(self.full_search_type, name)
+
         # convert an xml object to its string value
         if isinstance(value, Xml):
             value.clear_xpath_cache()
@@ -3514,9 +3536,6 @@ class SObject(object):
                 #
                 return
             value = value[0]
-
-        # NOTE: this should be pretty quick, but could use some optimization
-        column_type = SearchType.get_column_type(self.full_search_type, name)
 
         info = self.process_value(name, value, column_type)
 
@@ -4004,6 +4023,10 @@ class SObject(object):
         elif self.get_id() in ['-1','']:
             return True
         return False
+
+    def validate_set_value(self, name, value):
+        '''allows derived classes to validate the columns value being set'''
+        pass
 
 
     def validate(self):

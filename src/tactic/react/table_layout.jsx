@@ -13,6 +13,7 @@ const MenuItem = MaterialUI.MenuItem;
 const Menu = MaterialUI.Menu;
 const Select = MaterialUI.Select;
 const TextField = MaterialUI.TextField;
+const TextareaAutosize = MaterialUI.TextareaAutosize;
 const Checkbox = MaterialUI.Checkbox;
 
 const Dialog = MaterialUI.Dialog;
@@ -69,12 +70,21 @@ const TableLayout = React.forwardRef( (props, ref) => {
         },
 
         show_total() {
-           return  grid_ref.current.show_total();
+           return grid_ref.current.show_total();
         },
+
+        show_import_data_modal() {
+            return show_import_data_modal();
+        },
+
 
         reload() {
            return  load_data();
         },
+
+        set_filter(column, options) {
+            set_filter(column, options);
+        }
     } ) )
 
     const [first_load, set_first_load] = useState(true);
@@ -94,9 +104,27 @@ const TableLayout = React.forwardRef( (props, ref) => {
     const import_data_modal_ref = useRef();
     const grid_ref = useRef();
 
+    const set_filter = (column, options) => {
+        if (!grid_ref.current) {
+            setTimeout( () => {
+                set_filter(column, options);
+            }, 200);
+            return;
+        }
+        grid_ref.current.set_filter(column, options);
+    }
+
+
+    /*
     useEffect( () => {
         init();
     }, [] );
+    */
+
+
+    useEffect( () => {
+        init();
+    }, [props.element_names, props.get_kwargs] )
 
 
     const init = async () => {
@@ -104,9 +132,16 @@ const TableLayout = React.forwardRef( (props, ref) => {
 
         let element_definitions = props.element_definitions;
         if (!element_definitions) {
-            config_handler = props.config_handler;
-            if (config_handler) {
-                element_definitions = await get_element_definitions(config_handler);
+            config = props.config;
+            if (config) {
+                // convert to AGgrid definitions
+                element_definitions = spt.react.Config(config, {});
+            }
+            else {
+                config_handler = props.config_handler;
+                if (config_handler) {
+                    element_definitions = await get_element_definitions(config_handler, props.extra_data);
+                }
             }
         }
 
@@ -183,8 +218,10 @@ const TableLayout = React.forwardRef( (props, ref) => {
         .then( ret => {
             let data = ret.info;
             set_data(data);
-            set_loading(false);
             set_first_load(false);
+            setTimeout( () => {
+                set_loading(false);
+            }, 0 );
 
         } )
         .catch( e => {
@@ -269,6 +306,7 @@ const TableLayout = React.forwardRef( (props, ref) => {
         let kwargs = {
             updates: updates,
             config_handler: props.config_handler,
+            extra_data: props.extra_data
         }
 
 
@@ -423,6 +461,7 @@ const TableLayout = React.forwardRef( (props, ref) => {
 
 
 
+
     let property_names = ["title", "name", "type", "width"];
     let property_definitions = {
         title: {
@@ -503,9 +542,11 @@ const TableLayout = React.forwardRef( (props, ref) => {
                 on_insert={insert_item}
                 element_names={element_names}
                 element_definitions={element_definitions}
+                edit_element_names={props.edit_element_names}
                 extra_data={props.extra_data}
             />
 
+            { false &&
             <EditModal
                 name={"Custom Property"}
                 ref={property_modal_ref}
@@ -513,6 +554,7 @@ const TableLayout = React.forwardRef( (props, ref) => {
                 element_names={property_names}
                 element_definitions={property_definitions}
             />
+            }
 
 
             <DeleteModal
@@ -541,6 +583,7 @@ const TableLayout = React.forwardRef( (props, ref) => {
                     columns={element_names}
                     update={build_column_defs}
                     property_modal_ref={property_modal_ref}
+                    on_column_add={props.on_column_add}
                 />
                 }
 
@@ -577,7 +620,7 @@ const TableLayout = React.forwardRef( (props, ref) => {
             return props.name;
         }
         else {
-            return "TABLE"
+            return ""
         }
     }
 
@@ -608,7 +651,7 @@ const TableLayout = React.forwardRef( (props, ref) => {
                 name={get_name()}
                 column_defs={column_defs}
                 data={data}
-                supress_click={true}
+                //suppress_click={true}
                 auto_height={props.auto_height}
                 height={props.height}
                 header_height={props.header_height}
@@ -768,13 +811,17 @@ const EditForm = React.forwardRef( (props, ref) => {
 
     const init = async () => {
 
-        let element_names = props.element_names;
+        // can override elements for edit
+        let element_names = props.edit_element_names;
+        if (!element_names) {
+            element_names = props.element_names;
+        }
 
         let element_definitions = props.element_definitions;
         if (!element_definitions) {
             config_handler = props.config_handler;
             if (config_handler) {
-                element_definitions = await get_element_definitions(config_handler);
+                element_definitions = await get_element_definitions(config_handler, props.extra_data);
             }
             else if (props.config) {
                 if (!element_names) {
@@ -787,7 +834,7 @@ const EditForm = React.forwardRef( (props, ref) => {
             }
             else if (element_names) {
                 // If no config is given, create a default one
-                element_definiions = [];
+                element_definitions = [];
                 element_names.forEach( element_name => {
                     let definition = {
                         field: element_name
@@ -799,8 +846,6 @@ const EditForm = React.forwardRef( (props, ref) => {
                 return;
             }
         }
-
-        console.log("eeee: ", element_definitions)
 
         /*
         element_names.forEach( element_name => {
@@ -958,8 +1003,6 @@ const EditForm = React.forwardRef( (props, ref) => {
     }
 
 
-
-
     return (
 
         <div className="spt_edit_form" style={style}>
@@ -975,16 +1018,16 @@ const EditForm = React.forwardRef( (props, ref) => {
 
                 let editor = definition?.cellEditor;
                 if (editor == SelectEditor) {
-                    return ( <SelectEditorWdg key={index} onchange={onchange} {...definition}/>)
+                    return ( <SelectEditorWdg key={index} onblur={props.onblur} onchange={props.onchange} {...definition}/>)
                 }
                 else if (editor == "NotesEditor") {
-                    return ( <NotesEditorWdg key={index} onchange={onchange} {...definition}/>)
+                    return ( <NotesEditorWdg key={index} onblur={props.onblur} onchange={props.onchange} {...definition}/>)
                 }
                 else if (editor == InputEditor) {
-                    return ( <InputEditorWdg key={index} onchange={onchange} {...definition}/>)
+                    return ( <InputEditorWdg key={index} onblur={props.onblur} onchange={props.onchange} {...definition}/>)
                 }
                 else {
-                    return ( <InputEditorWdg key={index} onchange={onchange} {...definition}/>)
+                    return ( <InputEditorWdg key={index} onblur={props.onblur} onchange={props.onchange} {...definition}/>)
                 }
               } ) }
 
@@ -1036,6 +1079,8 @@ const EditModal = React.forwardRef( (props, ref) => {
         let value = e.target.value;
 
         item[name] = value;
+
+        if (props.onchange) { props.onchange(e) }
     }
 
 
@@ -1219,6 +1264,9 @@ class SelectEditor {
         let values = params.values || [];
         let helpers = params.helpers || [];
         let colors = params.colors || {};
+        let default_value = params.default_value || null;
+
+        let onblur = params.onblur;
 
         let error = params.error;
 
@@ -1346,7 +1394,8 @@ class SelectEditor {
             //return;
         }
 
-        let value = this.value || values[0] || "";
+
+        let value = this.value || default_value || values[0] || "";
         this.value = value || "" // set this if it is using the first value
 
         this.el = (
@@ -1362,6 +1411,10 @@ class SelectEditor {
                     defaultOpen: open,
                     style: el_style,
                 }}
+                onBlur={ e => { 
+                    e.name = name;
+                    if (onblur) { onblur(e) }
+                } }
                 onChange={ e => {
                     this.value = e.target.value;
 
@@ -1503,6 +1556,7 @@ const SelectEditorWdg = (props) => {
                     props.sobject[name] = new_value;
                 }
             },
+            onblur: props.onblur,
             value: value,
             mode: mode,
             error: props.error,
@@ -1550,6 +1604,8 @@ class InputEditor {
         let helper = params.helper;
         let error = params.error;
 
+        let onblur = params.onblur;
+
         let is_form = params.is_form;
         let el_style;
         let style = {
@@ -1568,7 +1624,8 @@ class InputEditor {
                     boxSizing: "border-box",
                 }
                 style.padding = "0px 15px";
-                style.width = "max-width";
+                style.width = "100%";
+                style.lineHeight = "1.1rem";
 
                 if (this.mode == "date") {
                     marginTop: "-4px"
@@ -1583,18 +1640,27 @@ class InputEditor {
             };
         }
 
+        if (mode == "date" && this.value) {
+            this.value = this.value.split(" ")[0];
+        }
+
+
+        const ThisTextInput = rows > 1 ? TextareaAutosize : TextField;
+
         this.input = document.createElement("div")
         this.input.style.width = "100%";
+        this.input.style.height = "100%";
         this.root = ReactDOM.createRoot( this.input );
         this.el = (
-                <TextField
+                <ThisTextInput
                     label={label}
                     variant={variant}
                     defaultValue={this.value}
                     multiline={rows > 1 ? true : false}
                     error={error}
                     helperText={helper}
-                    rows={rows}
+                    minRows={rows}
+                    //rows={rows}
                     fullWidth
                     size="small"
                     type={mode}
@@ -1604,6 +1670,7 @@ class InputEditor {
                         className: "input",
                         style: el_style,
                     }}
+                    sx={{ width: "100%", height: '100%' }}
                     onChange={ e => {
                         this.value = e.target.value;
 
@@ -1616,6 +1683,8 @@ class InputEditor {
 
                     }}
                     onBlur={ e => {
+                        e.name = name;
+                        if (onblur) { onblur(e) }
 
                         if (params.api?.stopEditing) {
                             params.api.stopEditing();
@@ -1632,7 +1701,7 @@ class InputEditor {
                     }}
  
                 >
-                </TextField>
+                </ThisTextInput>
         );
 
     }
@@ -1687,6 +1756,7 @@ const InputEditorWdg = (props) => {
         rows: props.rows,
         variant: "outlined",
         mode: cellEditorParams.mode,
+        onblur: props.onblur,
         onchange: (e, new_value) => {
             set_value(new_value);
 
@@ -1749,6 +1819,10 @@ const SimpleCellRenderer = (params) => {
         try {
             if (!value) label = "";
             else {
+                if (typeOf(value) == "string") {
+                    value = parseFloat( value.replace(/\D/g,''));
+                    value = value / 100;
+                }
                 let display_value = value * 100;
                 label = display_value + "%";
             }
@@ -1805,9 +1879,16 @@ const SimpleCellRenderer = (params) => {
         el.appendChild(inner);
         inner.style.width = "100%";
         inner.style.height = "100%";
-        inner.style.padding = "0px 3px";
 
         inner.style.whiteSpace = "normal";
+
+        if (params.rows > 1) {
+            inner.style.lineHeight = "1.1rem";
+            inner.style.padding = "3px 3px";
+        }
+        else {
+            inner.style.padding = "0px 3px";
+        }
 
         // if the mode is color, the set the background color
         if (params.mode == "color") {
@@ -1947,7 +2028,12 @@ const ColumnManagerMenu = React.forwardRef( (props, ref) => {
         //column_setAnchorEl(null);
         let index = props.columns.indexOf(column);
         if (index == -1) {
-            props.columns.push(column);
+            if (props.on_column_add) {
+                props.on_column_add( { column: column, columns: props.columns } )
+            }
+            else {
+                props.columns.push(column);
+            }
         }
         else {
             props.columns.splice(index,1)
@@ -1981,6 +2067,8 @@ const ColumnManagerMenu = React.forwardRef( (props, ref) => {
                 'aria-labelledby': 'column-menu',
               }}
             >
+                { false &&
+                <>
                 <MenuItem
                     value={"custom"}
                     onClick={e => {
@@ -1992,6 +2080,11 @@ const ColumnManagerMenu = React.forwardRef( (props, ref) => {
                         height: "40px"
                     }}
                 >Custom</MenuItem>
+                <hr/>
+                </>
+                }
+
+                <div style={{fontSize: "1.2rem", margin: "10px 15px"}}>Column Manager</div>
                 <hr/>
 
 

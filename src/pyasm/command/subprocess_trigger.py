@@ -11,7 +11,10 @@
 
 __all__ = ['SubprocessTrigger', 'QueueTrigger', 'ScriptTrigger']
 
-import tacticenv
+try:
+    import tacticenv
+except:
+    pass
 
 import sys
 import subprocess

@@ -2400,9 +2400,10 @@ try:
     from Cryptodome.PublicKey import RSA
     from Cryptodome.Hash import MD5, SHA256
     from Cryptodome.Signature import pkcs1_15
-except ImportError:
+except ImportError as e:
     from Crypto.PublicKey import RSA
-    from Crypto.Hash import MD5
+    from Crypto.Hash import MD5, SHA256
+    from Crypto.Signature import pkcs1_15
 
 
 # HACK:  From PyCrypto-2.0.1 to PyCrypt-2.3, the install datastructure: RSAobj
@@ -2499,6 +2500,11 @@ class License(object):
 
         if path:
             self.license_path = path
+
+        if not os.path.exists(self.license_path):
+            parts = __file__.split("/")
+            parts.pop()
+            self.license_path = "%s/tactic-license.xml" % "/".join(parts)
 
         self.verify_flag = verify
 
@@ -2773,7 +2779,7 @@ class License(object):
 
 
 
-
+            """
             # check for tactic version
             license_version = self.xml.get_value("license/data/tactic_version")
             release_version = Environment.get_release_version()
@@ -2801,6 +2807,7 @@ class License(object):
                 else:
                     if release_version > license_version:
                         raise LicenseException("License not valid for this version of TACTIC. License is for v%s" % license_version)
+            """
 
 
 

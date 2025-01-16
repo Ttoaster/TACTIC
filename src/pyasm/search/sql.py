@@ -2054,7 +2054,7 @@ class Select(object):
         self.quoted_mode = mode
 
 
-    def add_column(self, column, distinct=False, table=None, as_column=None):
+    def add_column(self, column, distinct=False, table=None, as_column=None, quoted=True):
         if (column == "" or column in self.columns) and column != '*':
             return
         # This doesn't make sense, comment out for now
@@ -2065,7 +2065,9 @@ class Select(object):
         self.columns.append(column)
         self.as_columns.append(as_column)
 
-        if table:
+        if not quoted:
+            self.column_tables.append(None)
+        elif table:
             self.column_tables.append(table)
         else:
             self.column_tables.append(self.tables[0])
@@ -2567,16 +2569,21 @@ class Select(object):
                         #else:
                         #    quoted_col = '"%s"."%s"' % (self.column_tables[i],column)
                         parts = []
-                        if self.database:
-                            parts.append('"%s"' % self.database)
-                        if self.schema:
-                            parts.append('"%s"' % self.schema)
-                        parts.append('"%s"' % self.column_tables[i])
-                        if column == '*':
-                            parts.append(column)
+                        column_table = self.column_tables[i]
+                        if column_table:
+                            if self.database:
+                                parts.append('"%s"' % self.database)
+                            if self.schema:
+                                parts.append('"%s"' % self.schema)
+                            parts.append('"%s"' % self.column_tables[i])
+
+                            if column == '*':
+                                parts.append(column)
+                            else:
+                                parts.append('"%s"' % column)
+                            quoted_col = ".".join(parts)
                         else:
-                            parts.append('"%s"' % column)
-                        quoted_col = ".".join(parts)
+                            quoted_col = column
 
 
                     # handle columns that have different names specified

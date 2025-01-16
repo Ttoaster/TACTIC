@@ -15,6 +15,7 @@ const MenuItem = MaterialUI.MenuItem;
 const Menu = MaterialUI.Menu;
 const Select = MaterialUI.Select;
 const TextField = MaterialUI.TextField;
+const TextareaAutosize = MaterialUI.TextareaAutosize;
 const Checkbox = MaterialUI.Checkbox;
 const Dialog = MaterialUI.Dialog;
 const DialogTitle = MaterialUI.DialogTitle;
@@ -57,8 +58,14 @@ const TableLayout = React.forwardRef((props, ref) => {
     show_total() {
       return grid_ref.current.show_total();
     },
+    show_import_data_modal() {
+      return show_import_data_modal();
+    },
     reload() {
       return load_data();
+    },
+    set_filter(column, options) {
+      set_filter(column, options);
     }
   }));
   const [first_load, set_first_load] = useState(true);
@@ -74,16 +81,31 @@ const TableLayout = React.forwardRef((props, ref) => {
   const property_modal_ref = useRef();
   const import_data_modal_ref = useRef();
   const grid_ref = useRef();
+  const set_filter = (column, options) => {
+    if (!grid_ref.current) {
+      setTimeout(() => {
+        set_filter(column, options);
+      }, 200);
+      return;
+    }
+    grid_ref.current.set_filter(column, options);
+  };
+
   useEffect(() => {
     init();
-  }, []);
+  }, [props.element_names, props.get_kwargs]);
   const init = async () => {
     let element_names = props.element_names;
     let element_definitions = props.element_definitions;
     if (!element_definitions) {
-      config_handler = props.config_handler;
-      if (config_handler) {
-        element_definitions = await get_element_definitions(config_handler);
+      config = props.config;
+      if (config) {
+        element_definitions = spt.react.Config(config, {});
+      } else {
+        config_handler = props.config_handler;
+        if (config_handler) {
+          element_definitions = await get_element_definitions(config_handler, props.extra_data);
+        }
       }
     }
     if (!element_names && element_definitions) {
@@ -138,8 +160,10 @@ const TableLayout = React.forwardRef((props, ref) => {
     server.p_execute_cmd(cmd, kwargs).then(ret => {
       let data = ret.info;
       set_data(data);
-      set_loading(false);
       set_first_load(false);
+      setTimeout(() => {
+        set_loading(false);
+      }, 0);
     }).catch(e => {
       set_loading(false);
       alert("TACTIC ERROR: " + e);
@@ -196,7 +220,8 @@ const TableLayout = React.forwardRef((props, ref) => {
     });
     let kwargs = {
       updates: updates,
-      config_handler: props.config_handler
+      config_handler: props.config_handler,
+      extra_data: props.extra_data
     };
     let server = TACTIC.get();
     server.p_execute_cmd(cmd, kwargs).then(ret => {
@@ -350,8 +375,9 @@ const TableLayout = React.forwardRef((props, ref) => {
       on_insert: insert_item,
       element_names: element_names,
       element_definitions: element_definitions,
+      edit_element_names: props.edit_element_names,
       extra_data: props.extra_data
-    }), React.createElement(EditModal, {
+    }), false && React.createElement(EditModal, {
       name: "Custom Property",
       ref: property_modal_ref,
       on_insert: property_save,
@@ -375,7 +401,8 @@ const TableLayout = React.forwardRef((props, ref) => {
       all_columns: props.all_element_names || props.element_names,
       columns: element_names,
       update: build_column_defs,
-      property_modal_ref: property_modal_ref
+      property_modal_ref: property_modal_ref,
+      on_column_add: props.on_column_add
     }), false && React.createElement(Button, {
       size: "small",
       variant: "contained",
@@ -396,7 +423,7 @@ const TableLayout = React.forwardRef((props, ref) => {
     if (props.name) {
       return props.name;
     } else {
-      return "TABLE";
+      return "";
     }
   };
   let EmptyWdg = props.empty_wdg;
@@ -416,8 +443,8 @@ const TableLayout = React.forwardRef((props, ref) => {
     ref: grid_ref,
     name: get_name(),
     column_defs: column_defs,
-    data: data,
-    supress_click: true,
+    data: data
+    ,
     auto_height: props.auto_height,
     height: props.height,
     header_height: props.header_height,
@@ -520,12 +547,15 @@ const EditForm = React.forwardRef((props, ref) => {
     init();
   }, [props]);
   const init = async () => {
-    let element_names = props.element_names;
+    let element_names = props.edit_element_names;
+    if (!element_names) {
+      element_names = props.element_names;
+    }
     let element_definitions = props.element_definitions;
     if (!element_definitions) {
       config_handler = props.config_handler;
       if (config_handler) {
-        element_definitions = await get_element_definitions(config_handler);
+        element_definitions = await get_element_definitions(config_handler, props.extra_data);
       } else if (props.config) {
         if (!element_names) {
           element_names = [];
@@ -535,7 +565,7 @@ const EditForm = React.forwardRef((props, ref) => {
         }
         element_definitions = spt.react.Config(props.config, {});
       } else if (element_names) {
-        element_definiions = [];
+        element_definitions = [];
         element_names.forEach(element_name => {
           let definition = {
             field: element_name
@@ -546,7 +576,6 @@ const EditForm = React.forwardRef((props, ref) => {
         return;
       }
     }
-    console.log("eeee: ", element_definitions);
 
     let filtered = [];
 
@@ -672,22 +701,26 @@ const EditForm = React.forwardRef((props, ref) => {
     if (editor == SelectEditor) {
       return React.createElement(SelectEditorWdg, _extends({
         key: index,
-        onchange: onchange
+        onblur: props.onblur,
+        onchange: props.onchange
       }, definition));
     } else if (editor == "NotesEditor") {
       return React.createElement(NotesEditorWdg, _extends({
         key: index,
-        onchange: onchange
+        onblur: props.onblur,
+        onchange: props.onchange
       }, definition));
     } else if (editor == InputEditor) {
       return React.createElement(InputEditorWdg, _extends({
         key: index,
-        onchange: onchange
+        onblur: props.onblur,
+        onchange: props.onchange
       }, definition));
     } else {
       return React.createElement(InputEditorWdg, _extends({
         key: index,
-        onchange: onchange
+        onblur: props.onblur,
+        onchange: props.onchange
       }, definition));
     }
   }))));
@@ -718,6 +751,9 @@ const EditModal = React.forwardRef((props, ref) => {
     let name = e.name;
     let value = e.target.value;
     item[name] = value;
+    if (props.onchange) {
+      props.onchange(e);
+    }
   };
   return React.createElement(React.Fragment, null, false && React.createElement(Modal, {
     open: show,
@@ -836,6 +872,8 @@ class SelectEditor {
     let values = params.values || [];
     let helpers = params.helpers || [];
     let colors = params.colors || {};
+    let default_value = params.default_value || null;
+    let onblur = params.onblur;
     let error = params.error;
     if (typeof labels == "string") {
       labels = labels.split("|");
@@ -948,7 +986,7 @@ class SelectEditor {
     }
     if (this.value == null) {
     }
-    let value = this.value || values[0] || "";
+    let value = this.value || default_value || values[0] || "";
     this.value = value || "";
 
     this.el = React.createElement(React.Fragment, null, React.createElement(TextField, {
@@ -961,6 +999,12 @@ class SelectEditor {
       SelectProps: {
         defaultOpen: open,
         style: el_style
+      },
+      onBlur: e => {
+        e.name = name;
+        if (onblur) {
+          onblur(e);
+        }
       },
       onChange: e => {
         this.value = e.target.value;
@@ -1050,6 +1094,7 @@ const SelectEditorWdg = props => {
           props.sobject[name] = new_value;
         }
       },
+      onblur: props.onblur,
       value: value,
       mode: mode,
       error: props.error
@@ -1081,6 +1126,7 @@ class InputEditor {
     let rows = params.rows || 1;
     let helper = params.helper;
     let error = params.error;
+    let onblur = params.onblur;
     let is_form = params.is_form;
     let el_style;
     let style = {
@@ -1097,7 +1143,8 @@ class InputEditor {
           boxSizing: "border-box"
         };
         style.padding = "0px 15px";
-        style.width = "max-width";
+        style.width = "100%";
+        style.lineHeight = "1.1rem";
         if (this.mode == "date") {
           marginTop: "-4px";
         } else {
@@ -1107,17 +1154,23 @@ class InputEditor {
     } else {
       el_style = {};
     }
+    if (mode == "date" && this.value) {
+      this.value = this.value.split(" ")[0];
+    }
+    const ThisTextInput = rows > 1 ? TextareaAutosize : TextField;
     this.input = document.createElement("div");
     this.input.style.width = "100%";
+    this.input.style.height = "100%";
     this.root = ReactDOM.createRoot(this.input);
-    this.el = React.createElement(TextField, {
+    this.el = React.createElement(ThisTextInput, {
       label: label,
       variant: variant,
       defaultValue: this.value,
       multiline: rows > 1 ? true : false,
       error: error,
       helperText: helper,
-      rows: rows,
+      minRows: rows
+      ,
       fullWidth: true,
       size: "small",
       type: mode,
@@ -1129,6 +1182,10 @@ class InputEditor {
         className: "input",
         style: el_style
       },
+      sx: {
+        width: "100%",
+        height: '100%'
+      },
       onChange: e => {
         this.value = e.target.value;
 
@@ -1138,6 +1195,10 @@ class InputEditor {
         }
       },
       onBlur: e => {
+        e.name = name;
+        if (onblur) {
+          onblur(e);
+        }
         if (params.api?.stopEditing) {
           params.api.stopEditing();
         }
@@ -1188,6 +1249,7 @@ const InputEditorWdg = props => {
     rows: props.rows,
     variant: "outlined",
     mode: cellEditorParams.mode,
+    onblur: props.onblur,
     onchange: (e, new_value) => {
       set_value(new_value);
       if (props.sobject) {
@@ -1238,6 +1300,10 @@ const SimpleCellRenderer = params => {
   } else if (mode == "%") {
     try {
       if (!value) label = "";else {
+        if (typeOf(value) == "string") {
+          value = parseFloat(value.replace(/\D/g, ''));
+          value = value / 100;
+        }
         let display_value = value * 100;
         label = display_value + "%";
       }
@@ -1277,8 +1343,13 @@ const SimpleCellRenderer = params => {
     el.appendChild(inner);
     inner.style.width = "100%";
     inner.style.height = "100%";
-    inner.style.padding = "0px 3px";
     inner.style.whiteSpace = "normal";
+    if (params.rows > 1) {
+      inner.style.lineHeight = "1.1rem";
+      inner.style.padding = "3px 3px";
+    } else {
+      inner.style.padding = "0px 3px";
+    }
 
     if (params.mode == "color") {
       inner.style.background = value;
@@ -1380,7 +1451,14 @@ const ColumnManagerMenu = React.forwardRef((props, ref) => {
   const column_handle_select = async column => {
     let index = props.columns.indexOf(column);
     if (index == -1) {
-      props.columns.push(column);
+      if (props.on_column_add) {
+        props.on_column_add({
+          column: column,
+          columns: props.columns
+        });
+      } else {
+        props.columns.push(column);
+      }
     } else {
       props.columns.splice(index, 1);
     }
@@ -1406,7 +1484,7 @@ const ColumnManagerMenu = React.forwardRef((props, ref) => {
       MenuListProps: {
         'aria-labelledby': 'column-menu'
       }
-    }, React.createElement(MenuItem, {
+    }, false && React.createElement(React.Fragment, null, React.createElement(MenuItem, {
       value: "custom",
       onClick: e => {
         props.property_modal_ref.current.show();
@@ -1414,7 +1492,12 @@ const ColumnManagerMenu = React.forwardRef((props, ref) => {
       style: {
         height: "40px"
       }
-    }, "Custom"), React.createElement("hr", null), props.all_columns.map((column, index) => React.createElement(MenuItem, {
+    }, "Custom"), React.createElement("hr", null)), React.createElement("div", {
+      style: {
+        fontSize: "1.2rem",
+        margin: "10px 15px"
+      }
+    }, "Column Manager"), React.createElement("hr", null), props.all_columns.map((column, index) => React.createElement(MenuItem, {
       key: index,
       value: column,
       onClick: e => {

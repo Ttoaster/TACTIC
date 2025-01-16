@@ -1359,6 +1359,12 @@ class CalendarInputWdg(BaseInputWdg):
 
             if db_date:
                 # This date is assumed to be GMT
+                import re
+                regex = "^\d+-\d+-\d+$"
+                if re.findall(regex, db_date):
+                    # since this is assumed to be GMT, and there is no time,
+                    # we are adding 12:00:00
+                    db_date = f"{db_date} 12:00:00"
                 try:
                     value = parser.parse(db_date)
                 except:

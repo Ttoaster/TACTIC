@@ -8,21 +8,25 @@ const SelectEditor = spt.react.SelectEditor;
 const InputEditor = spt.react.InputEditor;
 const SimpleCellRenderer = spt.react.SimpleCellRenderer;
 const PreviewCellRenderer = spt.react.PreviewCellRenderer;
-
-const on_cell_value_changed = params => {
-  let table_ref = params.table_ref;
-  let data = params.data;
-  let column = params.column.colId;
-
-  data[column] = params.newValue;
-  table_ref.current.save(data, column);
-};
 const Config = (config, options) => {
+  let table_ref = options.table_ref;
+
+  const on_cell_value_changed = params => {
+    let table_ref = params.table_ref;
+    let data = params.data;
+    let column = params.column.colId;
+
+    data[column] = params.newValue;
+    let selected = table_ref.current.get_selected_nodes();
+    selected.forEach(node => {
+      node.data[column] = params.newValue;
+    });
+    table_ref.current.save(data, column);
+  };
   let cell_value_changed = options.cell_value_changed;
   if (!cell_value_changed) {
     cell_value_changed = on_cell_value_changed;
   }
-  let table_ref = options.table_ref;
 
   let definition_types = {
     simple: {
@@ -70,6 +74,8 @@ const Config = (config, options) => {
     let pinned = config_item.pinned;
     let width = config_item.width;
     let flex = config_item.flex;
+    let cell_class = config_item.cell_class;
+    let cell_style = config_item.cell_style;
     if (!name) {
       throw "No name provided in config";
     }
@@ -83,6 +89,12 @@ const Config = (config, options) => {
     let group = config_item.group;
     if (group) {
       config_def["group"] = group;
+    }
+    if (cell_class) {
+      config_def["cellClass"] = cell_class;
+    }
+    if (cell_style) {
+      config_def["cellStyle"] = cell_style;
     }
     if (config_item.cell_value_changed) {
       if (typeof config_item.cell_value_changed == "string") {
@@ -115,6 +127,11 @@ const Config = (config, options) => {
       config_def["flex"] = flex;
     }
     let params = {};
+    if (config_item.renderer_params) {
+      params = {
+        ...config_item.renderer_params
+      };
+    }
     if (element_type == "select") {
       let mode = config_item.mode;
       let labels = config_item.labels;
@@ -133,6 +150,7 @@ const Config = (config, options) => {
         helpers = helpers.split(",");
       }
       params = {
+        ...params,
         table_ref: table_ref,
         labels: labels,
         values: values,
@@ -187,6 +205,7 @@ const Config = (config, options) => {
         };
       }
       params = {
+        ...params,
         table_ref: table_ref,
         mode: format
       };
@@ -207,7 +226,7 @@ const Config = (config, options) => {
 
       let rows = config_item.rows;
       if (rows) {
-        config_def.rows = rows;
+        params.rows = rows;
       }
       let editable = config_item.editable;
       if (editable == false || editable == "false") {

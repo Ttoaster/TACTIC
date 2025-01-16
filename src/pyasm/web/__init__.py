@@ -10,6 +10,23 @@
 #
 #
 
+
+try:
+    import tacticenv
+    import sys
+    tactic_install_dir = tacticenv.get_install_dir()
+
+    sys.path.insert(0, "%s/3rd_party/common/site-packages" % tactic_install_dir)
+    if sys.version_info[0] < 3:
+        sys.path.insert(0, "%s/3rd_party/python2/site-packages" % tactic_install_dir)
+    else:
+        if sys.version_info[1] <= 8:
+            sys.path.insert(0, "%s/3rd_party/python3.6/site-packages" % tactic_install_dir)
+        else:
+            sys.path.insert(0, "%s/3rd_party/python3/site-packages" % tactic_install_dir)
+except:
+    pass
+
 # web framework interface and implementations
 from .web_environment import *
 from .palette import *

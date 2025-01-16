@@ -17,7 +17,7 @@ from pyasm.common import *
 from pyasm.search import SearchType, Search
 from pyasm.biz import *
 from pyasm.prod.biz import *
-from pyasm.prod.checkin import *
+#from pyasm.prod.checkin import *
 import os, types
 
 from .loader import *

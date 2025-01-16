@@ -1,16 +1,9 @@
-/*
-import { useState } from "react";
-import { useEffect } from "react";
-import { useReducer } from 'react';
-import { useRef } from 'react';
-*/
 let useEffect = React.useEffect;
 let useState = React.useState;
 let useReducer = React.useReducer;
 
 const Common = spt.react.Common;
 
-//const DataGrid = (props) => {
 const DataGrid = React.forwardRef( (props, ref) => {
 
     React.useImperativeHandle( ref, () => ({
@@ -128,6 +121,17 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
 
     const set_filter = (column, options) => {
+        if (!api) {
+            setTimeout( () => {
+                set_filter(column, options);
+            }, 200 );
+            return;
+        }
+
+        _set_filter(column, options);
+    }
+
+    const _set_filter = (column, options) => {
 
         // Get a reference to the filter instance
         //const filterInstance = api.getFilterInstance(column);
@@ -139,18 +143,31 @@ const DataGrid = React.forwardRef( (props, ref) => {
         }
         else {
 
-            if (typeof options == "string") {
+            if (typeOf(options) == "string") {
                 options = {
                     filter: options
                 }
-            }
 
-            if (!options.filterType) {
-                options.filterType = "text"
-            }
+                if (!options.filterType) {
+                    options.filterType = "text"
+                }
 
-            if (!options.type) {
-                options.type = "startsWith"
+                if (!options.type) {
+                    options.type = "startsWith"
+                }
+
+            }
+            else if (typeOf(options) == "array") {
+                let conditions = [];
+                options.forEach( option => {
+                    let condition = { type: "contains", filter: option }
+                    conditions.push(condition)
+                } )
+                options = {
+                    filterType: "text",
+                    operator: "OR",
+                    conditions: conditions
+                }
             }
 
             // Set the filter model
@@ -418,7 +435,6 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
 
 
-
     useEffect( () => {
         let random = Math.floor( Math.random()*100000000 );
         let grid_name = props.name + random;
@@ -561,8 +577,8 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
 
         set_grid_options(gridOptions);
-        set_api( gridOptions.api );
 
+        //set_api( gridOptions.api );
 
     }, [] );
 
@@ -676,7 +692,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
                             order_list: props.order_list,
                             sort_column: sortedColumns[0].colId,
                         }
-                        data = group_data(data, props.group_by, options);
+                        data = group_data(props.data, props.group_by, options);
                         api.setGridOption('rowData', data)
      
                     }
@@ -684,9 +700,16 @@ const DataGrid = React.forwardRef( (props, ref) => {
                         let options = {
                             order_list: props.order_list
                         }
-                        data = group_data(data, props.group_by, options);
+                        data = group_data(props.data, props.group_by, options);
                         api.setGridOption('rowData', data)
                     }
+                }
+                else {
+                    let options = {
+                        order_list: props.order_list
+                    }
+                    data = group_data(props.data, props.group_by, options);
+                    api.setGridOption('rowData', data)
                 }
             }
             else {
@@ -900,13 +923,8 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
 
 
-
-
-
-
-
     // TEST TEST TEST TEST - DEPRECATED
-
+    /*
     function generate_pinned_data(params) {
         // generate a row-data with null values
         let result2 = {};
@@ -1019,6 +1037,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
         return target;
     }
+    */
 
 
 
