@@ -10,12 +10,10 @@ const SimpleCellRenderer = spt.react.SimpleCellRenderer;
 const PreviewCellRenderer = spt.react.PreviewCellRenderer;
 const Config = (config, options) => {
   let table_ref = options.table_ref;
-
   const on_cell_value_changed = params => {
     let table_ref = params.table_ref;
     let data = params.data;
     let column = params.column.colId;
-
     data[column] = params.newValue;
     let selected = table_ref.current.get_selected_nodes();
     selected.forEach(node => {
@@ -27,7 +25,6 @@ const Config = (config, options) => {
   if (!cell_value_changed) {
     cell_value_changed = on_cell_value_changed;
   }
-
   let definition_types = {
     simple: {
       minWidth: 150,
@@ -49,7 +46,6 @@ const Config = (config, options) => {
       cellRenderer: SimpleCellRenderer
     }
   };
-
   let config_defs = {};
   config.forEach(config_item => {
     let element_type = config_item.type;
@@ -162,7 +158,6 @@ const Config = (config, options) => {
           ...options.renderer_params
         };
       }
-
       let layout = config_item.layout;
       if (layout) {
         config_def.layout = layout;
@@ -223,7 +218,6 @@ const Config = (config, options) => {
       if (error) {
         config_def.error = error;
       }
-
       let rows = config_item.rows;
       if (rows) {
         params.rows = rows;
@@ -260,7 +254,6 @@ const Config = (config, options) => {
       if (typeof onclick != "function") alert("NOT A FUNCTION");
       params["onclick"] = onclick;
     }
-
     let cell_renderer = config_item.renderer;
     if (cell_renderer) {
       try {
@@ -273,5 +266,4 @@ const Config = (config, options) => {
   });
   return config_defs;
 };
-
 spt.react.Config = Config;

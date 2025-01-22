@@ -21,7 +21,7 @@ const Checkbox = MaterialUI.Checkbox;
 const Pages = React.forwardRef((props, ref) => {
   React.useImperativeHandle(ref, () => ({
     next() {
-      return next();
+      return next_page();
     }
   }));
   const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
@@ -31,7 +31,6 @@ const Pages = React.forwardRef((props, ref) => {
   const [pages_dict, set_pages_dict] = useState({});
   const [is_validated, set_is_validated] = useState(true);
   const [show_buttons, set_show_buttons] = useState(true);
-
   const [sobject, set_sobject] = useState({});
   const get_default_header = () => {
     return React.createElement("div", {
@@ -57,7 +56,6 @@ const Pages = React.forwardRef((props, ref) => {
       return;
     }
     let pages = pages_ref.current.get_pages();
-
     await set_pages(pages);
     if (pages_ref.current.get_header) {
       let header = pages_ref.current.get_header();
@@ -74,7 +72,6 @@ const Pages = React.forwardRef((props, ref) => {
     set_pages_dict(pages_dict);
     let current_page = props.page || 0;
     await set_current_page(current_page);
-
     let first_page = pages[current_page];
     if (first_page?.onload) {
       first_page.onload();
@@ -99,7 +96,6 @@ const Pages = React.forwardRef((props, ref) => {
     set_last_page(0);
   }, [current_page, last_page, sobject]);
   const next_page = useCallback(async () => {
-    let pages = pages_ref.current.get_pages();
     let page = pages[current_page];
     if (!page) {
       alert("Cannot find page [" + current_page + "]");
@@ -116,7 +112,6 @@ const Pages = React.forwardRef((props, ref) => {
         return;
       }
     }
-
     let next_index;
     if (page.next) {
       let next_name = page.next(sobject);
@@ -157,7 +152,6 @@ const Pages = React.forwardRef((props, ref) => {
         }
       });
     }
-
     return form_validated;
   };
   const get_buttons = () => {

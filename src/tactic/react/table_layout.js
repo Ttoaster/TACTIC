@@ -37,9 +37,6 @@ const TableLayout = React.forwardRef((props, ref) => {
     get_grid_ref() {
       return grid_ref;
     },
-    group_data(group_column) {
-      return group_by(data, group_column);
-    },
     export_csv(params) {
       grid_ref.current.export_csv(params);
     },
@@ -210,7 +207,7 @@ const TableLayout = React.forwardRef((props, ref) => {
         value: item[column],
         mode: mode
       };
-      if (mode == "insert") {
+      if (mode === "insert") {
         inserts.push(item);
       }
       updates.push(update);
@@ -248,7 +245,7 @@ const TableLayout = React.forwardRef((props, ref) => {
       mode: mode,
       item: item
     };
-    if (mode == "insert") {
+    if (mode === "insert") {
       inserts.push(item);
     }
     let kwargs = {
@@ -283,7 +280,7 @@ const TableLayout = React.forwardRef((props, ref) => {
       definitions = element_definitions;
     }
     column_defs = [];
-    if (props.show_row_select == true || typeof props.show_row_select == "undefined") {
+    if (props.show_row_select === true || typeof props.show_row_select === "undefined") {
       column_defs.push({
         field: '',
         maxWidth: 50,
@@ -418,7 +415,7 @@ const TableLayout = React.forwardRef((props, ref) => {
     }
   };
   let EmptyWdg = props.empty_wdg;
-  return React.createElement("div", null, props.show_shelf != false && React.createElement("div", {
+  return React.createElement("div", null, props.show_shelf !== false && React.createElement("div", {
     style: {
       display: "flex",
       justifyContent: "space-between"
@@ -427,7 +424,7 @@ const TableLayout = React.forwardRef((props, ref) => {
     style: {
       fontSize: "1.2rem"
     }
-  }, get_name()), get_shelf()), !first_load && !loading && props.empty_wdg && data?.length == 0 ? React.createElement("div", null, React.createElement(EmptyWdg, {
+  }, get_name()), get_shelf()), !first_load && !loading && props.empty_wdg && data?.length === 0 ? React.createElement("div", null, React.createElement(EmptyWdg, {
     edit_modal_ref: edit_modal_ref,
     import_data_modal_ref: import_data_modal_ref
   })) : React.createElement(React.Fragment, null, !loading ? React.createElement(DataGrid, {
@@ -458,7 +455,7 @@ const TableLayoutActionMenu = props => {
   };
   const open_edit_modal = () => {
     let selected = props.grid_ref.current.get_selected_nodes();
-    if (selected.length == 0) {
+    if (selected.length === 0) {
       alert("No items selected");
       return;
     }
@@ -543,7 +540,7 @@ const EditForm = React.forwardRef((props, ref) => {
     }
     let element_definitions = props.element_definitions;
     if (!element_definitions) {
-      config_handler = props.config_handler;
+      let config_handler = props.config_handler;
       if (config_handler) {
         element_definitions = await get_element_definitions(config_handler, props.extra_data);
       } else if (props.config) {
@@ -575,7 +572,7 @@ const EditForm = React.forwardRef((props, ref) => {
       }
       if (!definition.name) definition.name = element_name;
       if (!definition.title) definition.title = Common.capitalize(definition.name);
-      if (definition.editable == true) {
+      if (definition.editable === true) {
         filtered.push(element_name);
       }
     });
@@ -600,35 +597,13 @@ const EditForm = React.forwardRef((props, ref) => {
         groups[group_name] = group;
         group_names.push(group_name);
       }
-      if (typeof definition.value == "undefined") {
+      if (typeof definition.value === "undefined") {
         definition.value = null;
       }
       group.push(definition);
     });
     set_groups(groups);
     set_group_names(group_names);
-  };
-  const load_data = async () => {
-    let cmd = props.get_cmd;
-    if (!cmd) {
-      alert("Get cmd is not defined");
-      return;
-    }
-    let kwargs = props.get_kwargs || {};
-    let config_handler = props.config_handler;
-    kwargs["config_handler"] = config_handler;
-    if (props.extra_data) {
-      Object.keys(props.extra_data).forEach(key => {
-        kwargs[key] = props.extra_data[key];
-      });
-    }
-    let server = TACTIC.get();
-    server.p_execute_cmd(cmd, kwargs).then(ret => {
-      let data = ret.info;
-      set_data(data);
-    }).catch(e => {
-      alert("TACTIC ERROR: " + e);
-    });
   };
   const get_element_definitions = async (cmd, kwargs) => {
     if (!kwargs) {
@@ -649,7 +624,7 @@ const EditForm = React.forwardRef((props, ref) => {
     let form_validated = true;
     element_names.forEach(element_name => {
       let definition = element_definitions[element_name];
-      if (definition.required == true) {
+      if (definition.required === true) {
         let key = definition.column || definition.name;
         if (!sobject[key]) {
           form_validated = false;
@@ -682,19 +657,13 @@ const EditForm = React.forwardRef((props, ref) => {
     }
   }, groups[group_name].map((definition, index) => {
     let editor = definition?.cellEditor;
-    if (editor == SelectEditor) {
+    if (editor === SelectEditor) {
       return React.createElement(SelectEditorWdg, _extends({
         key: index,
         onblur: props.onblur,
         onchange: props.onchange
       }, definition));
-    } else if (editor == "NotesEditor") {
-      return React.createElement(NotesEditorWdg, _extends({
-        key: index,
-        onblur: props.onblur,
-        onchange: props.onchange
-      }, definition));
-    } else if (editor == InputEditor) {
+    } else if (editor === InputEditor) {
       return React.createElement(InputEditorWdg, _extends({
         key: index,
         onblur: props.onblur,
@@ -858,13 +827,13 @@ class SelectEditor {
     let default_value = params.default_value || null;
     let onblur = params.onblur;
     let error = params.error;
-    if (typeof labels == "string") {
+    if (typeof labels === "string") {
       labels = labels.split("|");
     }
-    if (typeof values == "string") {
+    if (typeof values === "string") {
       values = values.split("|");
     }
-    if (typeof helpers == "string") {
+    if (typeof helpers === "string") {
       helpers = helpers.split("|");
     }
     let variant = params.variant || "standard";
@@ -889,7 +858,7 @@ class SelectEditor {
     this.input = document.createElement("div");
     this.input.style.width = "100%";
     this.root = ReactDOM.createRoot(this.input);
-    if (mode == "button") {
+    if (mode === "button") {
       this.el = React.createElement("div", {
         style: {
           display: "flex",
@@ -902,7 +871,7 @@ class SelectEditor {
         }
       }, React.createElement(Button, {
         key: index,
-        variant: this.value == value ? "contained" : "outlined",
+        variant: this.value === value ? "contained" : "outlined",
         style: {
           border: error ? "solid 1px red" : ""
         },
@@ -925,8 +894,8 @@ class SelectEditor {
         }
       }, helpers[index]))));
       return;
-    } else if (mode == "checkbox") {
-      if (this.value == null) {
+    } else if (mode === "checkbox") {
+      if (this.value === null) {
         this.value = values[1];
       }
       this.el = React.createElement("div", {
@@ -966,7 +935,7 @@ class SelectEditor {
       }, labels[0])));
       return;
     }
-    if (this.value == null) {}
+    if (this.value === null) {}
     let value = this.value || default_value || values[0] || "";
     this.value = value || "";
     this.el = React.createElement(React.Fragment, null, React.createElement(TextField, {
@@ -997,7 +966,7 @@ class SelectEditor {
         }
       },
       onKeyUp: e => {
-        if (e.key == 13) {
+        if (e.key === 13) {
           params.api.stopEditing();
           params.api.tabToNextCell();
         }
@@ -1032,7 +1001,7 @@ const SelectEditorWdg = props => {
     let value = props.value;
     set_value(value);
     let label = props.headerName || props.label || props.title;
-    if (label == null || typeof label == "undefined") {
+    if (label === null || typeof label === "undefined") {
       label = props.field;
     }
     label = Common.capitalize(label);
@@ -1045,7 +1014,7 @@ const SelectEditorWdg = props => {
     init();
   }, [props.error]);
   useEffect(() => {
-    if (typeof value == "undefined") return;
+    if (typeof value === "undefined") return;
     init();
   }, [value]);
   const init = () => {
@@ -1085,9 +1054,9 @@ const SelectEditorWdg = props => {
     style: {
       width: "100%"
     }
-  }, props.show_title != false && React.createElement("div", {
+  }, props.show_title !== false && React.createElement("div", {
     className: "spt_form_label"
-  }, label, " ", props.required == true ? "*" : ""), el && React.createElement("div", {
+  }, label, " ", props.required === true ? "*" : ""), el && React.createElement("div", {
     className: "spt_form_input"
   }, el), props.helper && React.createElement("div", null, props.helper));
 };
@@ -1110,7 +1079,7 @@ class InputEditor {
       height: "100%"
     };
     if (!is_form) {
-      if (mode == "color") {} else {
+      if (mode === "color") {} else {
         el_style = {
           fontSize: "0.75rem",
           padding: "3px 3px",
@@ -1121,16 +1090,16 @@ class InputEditor {
         style.padding = "0px 15px";
         style.width = "100%";
         style.lineHeight = "1.1rem";
-        if (this.mode == "date") {
-          marginTop: "-4px";
+        if (this.mode === "date") {
+          style.marginTop = "-4px";
         } else {
-          marginTop: "2px";
+          style.marginTop = "2px";
         }
       }
     } else {
       el_style = {};
     }
-    if (mode == "date" && this.value) {
+    if (mode === "date" && this.value) {
       this.value = this.value.split(" ")[0];
     }
     const ThisTextInput = rows > 1 ? TextareaAutosize : TextField;
@@ -1179,9 +1148,9 @@ class InputEditor {
       },
       onKeyUp: e => {
         this.value = e.target.value;
-        if (e.code == "Tab" && params.api) {
+        if (e.code === "Tab" && params.api) {
           params.api.tabToNextCell();
-        } else if (e.code == "Enter" && params.api) {
+        } else if (e.code === "Enter" && params.api) {
           params.api.stopEditing();
         }
       }
@@ -1195,7 +1164,7 @@ class InputEditor {
     return this.input;
   }
   getValue() {
-    if (this.mode == "date") {
+    if (this.mode === "date") {
       this.value = Date.parse(this.value);
     }
     return this.value;
@@ -1244,7 +1213,7 @@ const InputEditorWdg = props => {
     }
   }, React.createElement("div", {
     className: "spt_form_label"
-  }, label, props.required == true ? " *" : ""), React.createElement("div", {
+  }, label, props.required === true ? " *" : ""), React.createElement("div", {
     className: "spt_form_input"
   }, el));
 };
@@ -1256,10 +1225,10 @@ const SimpleCellRenderer = params => {
   let mode = params.mode;
   let renderer = params.renderer;
   let editable = params.colDef.editable;
-  if (label == null) {
+  if (label === null) {
     label = "";
   }
-  if (mode == "date") {
+  if (mode === "date") {
     try {
       let date = Date.parse(value);
       let day = date.getDate() + "";
@@ -1269,10 +1238,10 @@ const SimpleCellRenderer = params => {
     } catch (e) {
       label = "";
     }
-  } else if (mode == "%") {
+  } else if (mode === "%") {
     try {
       if (!value) label = "";else {
-        if (typeOf(value) == "string") {
+        if (typeof value === "string") {
           value = parseFloat(value.replace(/\D/g, ''));
           value = value / 100;
         }
@@ -1282,7 +1251,7 @@ const SimpleCellRenderer = params => {
     } catch (e) {
       label = "";
     }
-  } else if (mode == "$") {
+  } else if (mode === "$") {
     function numberWithCommasAndDecimals(x) {
       const parts = x.toString().split(".");
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -1294,11 +1263,11 @@ const SimpleCellRenderer = params => {
       label = "";
     }
   } else {
-    let values = params.values;
-    if (values != null) {
+    let values = params.values || [];
+    if (values !== null) {
       let labels = params.labels;
       let index = values.indexOf(value);
-      if (index != -1) {
+      if (index !== -1) {
         label = labels[index];
       }
     }
@@ -1321,14 +1290,14 @@ const SimpleCellRenderer = params => {
     } else {
       inner.style.padding = "0px 3px";
     }
-    if (params.mode == "color") {
+    if (params.mode === "color") {
       inner.style.background = value;
     }
     let color = colors[value];
     if (color) {
       inner.style.background = color;
     }
-    if (label == "") label = "";
+    if (label === "") label = "";
     inner.appendChild(document.createTextNode(label));
     if (onClick || onclick) {
       inner.style.textDecoration = "underline";
@@ -1418,7 +1387,7 @@ const ColumnManagerMenu = React.forwardRef((props, ref) => {
   };
   const column_handle_select = async column => {
     let index = props.columns.indexOf(column);
-    if (index == -1) {
+    if (index === -1) {
       if (props.on_column_add) {
         props.on_column_add({
           column: column,

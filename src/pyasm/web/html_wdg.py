@@ -1443,6 +1443,14 @@ class HtmlElement(Widget):
         return script
     script = staticmethod(script)
 
+    def link(href=None):
+        link = HtmlElement("link")
+        if href:
+            link.add_attribute("href", href)
+        return link
+    link = staticmethod(link)
+
+
 
     def function(function_name, script_text):
         function = "function %s() {\n%s\n}\n" % (function_name, script_text)

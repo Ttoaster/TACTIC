@@ -177,7 +177,7 @@ const Pages = React.forwardRef((props, ref) => {
 
     const next_page = useCallback( async () => {
 
-        let pages = pages_ref.current.get_pages();
+        //let pages = pages_ref.current.get_pages();
 
         let page = pages[current_page];
         if (!page) {

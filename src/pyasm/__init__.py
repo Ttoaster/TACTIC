@@ -10,7 +10,6 @@
 #
 #
 
-"""
 try:
     import tacticenv
     import sys
@@ -26,4 +25,3 @@ try:
             sys.path.insert(0, "%s/3rd_party/python3/site-packages" % tactic_install_dir)
 except:
     pass
-"""
