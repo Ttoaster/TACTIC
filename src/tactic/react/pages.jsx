@@ -310,6 +310,7 @@ const Pages = React.forwardRef((props, ref) => {
                 ref={pages_ref}
                 edit_ref={edit_ref}
                 sobject={sobject}
+                set_sobject={set_sobject}
                 set_show_buttons={set_show_buttons}
                 next_page={next_page}
                 current_index={current_page}
