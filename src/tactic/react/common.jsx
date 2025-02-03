@@ -1,6 +1,4 @@
 
-//const store = spt.react.redux.store;
-
 
 class Common {
     constructor() {}
@@ -36,4 +34,7 @@ class Common {
 }
 
 spt.react.Common = Common;
+
+//export default Common;
+//export { Common }
 

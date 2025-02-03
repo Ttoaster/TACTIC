@@ -1,15 +1,9 @@
 let useEffect = React.useEffect;
 let useState = React.useState;
-let useReducer = React.useReducer;
-
-const Common = spt.react.Common;
 
 const DataGrid = React.forwardRef( (props, ref) => {
 
     React.useImperativeHandle( ref, () => ({
-        add_filter(filter) {
-            add_filter(filter);
-        },
         select_all() {
             select_all();
         },
@@ -89,14 +83,9 @@ const DataGrid = React.forwardRef( (props, ref) => {
     const [grid_name, set_grid_name] = useState(null);
     const [grid_options, set_grid_options] = useState(null);
 
-    const [onselect, set_onselect] = useState(null);
-
     const [data, set_data] = useState([]);
     const [column_defs, set_column_defs] = useState(null);
     const [group_by, set_group_by] = useState("");
-
-
-    const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
 
 
     const add_filter = filter => {
@@ -143,7 +132,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
         }
         else {
 
-            if (typeOf(options) == "string") {
+            if (typeOf(options) === "string") {
                 options = {
                     filter: options
                 }
@@ -157,7 +146,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
                 }
 
             }
-            else if (typeOf(options) == "array") {
+            else if (options instanceof Array) {
                 let conditions = [];
                 options.forEach( option => {
                     let condition = { type: "contains", filter: option }
@@ -235,10 +224,10 @@ const DataGrid = React.forwardRef( (props, ref) => {
                 let column = cell.column.colId;
                 try {
                     let parts = column.split("-");
-                    if (parts.length != 3) {
+                    if (parts.length !== 3) {
                         throw("Not a date");
                     }
-                    let date = Date.parse(column);
+                    //let date = Date.parse(column);
                     return column;
                 }
                 catch(e) {
@@ -262,10 +251,10 @@ const DataGrid = React.forwardRef( (props, ref) => {
                 let column = cell.column.colId;
                 try {
                     let parts = column.split("-");
-                    if (parts.length != 3) {
+                    if (parts.length !== 3) {
                         throw("Not a date");
                     }
-                    let date = Date.parse(column);
+                    //let date = Date.parse(column);
                     return column;
                 }
                 catch(e) {
@@ -371,27 +360,6 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
 
         let pinned;
-        // These should be removed
-        /*
-        if  (props.show_total == "cost") {
-            setTimeout( () => {
-                pinned = generate_pinned_data(params)
-                params.api.setPinnedTopRowData( [pinned]  );
-            }, 0 )
-        }
-        else if (props.show_total == "role") {
-            setTimeout( () => {
-                pinned = generate_pinned_data2(params)
-                params.api.setPinnedTopRowData( [pinned]  );
-            } )
-        }
-        else if (props.show_total == "work_hour") {
-            setTimeout( () => {
-                pinned = generate_pinned_data2(params)
-                params.api.setPinnedTopRowData( [pinned]  );
-            } )
-        }
-        */
 
         if (props.get_total_data) {
 
@@ -399,7 +367,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
             params.api.getAllGridColumns().forEach(item => {
                 let column = item.colId;
                 let parts = column.split("-");
-                if (parts.length == 3) {
+                if (parts.length === 3) {
                     columns.push(column);
                 }
             });
@@ -442,11 +410,11 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
         let pagination = true;
         let pagination_size = props.pagination_size || 10000;
-        if (props.pagination != null) {
+        if (props.pagination !== null) {
             pagination = props.pagination;
         }
         else {
-            pagination: props.auto_height ? false : true;
+            pagination = props.auto_height ? false : true;
         }
 
 
@@ -482,14 +450,12 @@ const DataGrid = React.forwardRef( (props, ref) => {
           onCellClicked: on_cell_clicked,
           onFirstDataRendered: on_first_data_rendered,
 
-          singleClickEdit: props.single_click == true ? true : false,
-          suppressClickEdit: props.suppress_click == true ? true : false,
+          singleClickEdit: props.single_click === true ? true : false,
+          suppressClickEdit: props.suppress_click === true ? true : false,
           suppressRowClickSelection: true,
 
           suppressDragLeaveHidesColumns: true,
-          onColumnVisible: e => {
-              //console.log("e: ", e)
-          },
+          onColumnVisible: e => {},
 
 
           getRowStyle: get_row_style,
@@ -500,7 +466,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
 
           // while this is the behvaior we want, it does not behave well with selects
-          stopEditingWhenCellsLoseFocus: props.click_off == true ? true : false,
+          stopEditingWhenCellsLoseFocus: props.click_off === true ? true : false,
         
           groupHeaderHeight: 20,
 
@@ -612,9 +578,9 @@ const DataGrid = React.forwardRef( (props, ref) => {
             /*
             // Custom comparator that sorts header rows separately
             function customComparator(valueA, valueB, nodeA, nodeB) {
-              if (nodeA.data.__type__ == "group" && !nodeB.data.__type__ == "group") {
+              if (nodeA.data.__type__ === "group" && !nodeB.data.__type__ === "group") {
                 return -1; // Always sort header rows first
-              } else if (!nodeA.data.__type__ == "group" && nodeB.data.__type__ == "group") {
+              } else if (!nodeA.data.__type__ === "group" && nodeB.data.__type__ === "group") {
                 return 1; // Always sort non-header rows last
               } else {
                 // Normal comparison logic
@@ -639,7 +605,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
         }
 
         /*
-        if (props.data != data) {
+        if (props.data !== data) {
             let data = props.data;
             //api.setRowData(data);
             api.setGridOption('rowData', data)
@@ -666,19 +632,19 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
 
 
-        if (props.column_defs && props.column_defs != column_defs) {
+        if (props.column_defs && props.column_defs !== column_defs) {
             api.setGridOption("columnDefs", props.column_defs);
             set_column_defs(props.column_defs);
         }
 
 
 
-        if (props.data && (props.data != data || props.group_by != group_by)) {
+        if (props.data && (props.data !== data || props.group_by !== group_by)) {
             let data = props.data;
             set_data(data);
 
             if (props.group_by) {
-                if (props.group_by != group_by) {
+                if (props.group_by !== group_by) {
                     grid_options["group_by"] = props.group_by;
 
                     // Find the sorted column(s)
@@ -740,12 +706,12 @@ const DataGrid = React.forwardRef( (props, ref) => {
             css = props.get_row_style(params) || {};
         }
 
-        if (params.data.__type__ == "group") {
+        if (params.data.__type__ === "group") {
             css["background"] = params.data.__background__ || "#DDD";
             css["color"] = params.data.__color__ || "#000";
         }
 
-        if (params.data.__isVisible__ == false) {
+        if (params.data.__isVisible__ === false) {
             css["display"] = "none";
         }
         else {
@@ -756,7 +722,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
     }
 
     const get_row_height = params => {
-        if (params.data.__isVisible__ == false) {
+        if (params.data.__isVisible__ === false) {
             return 0;
         }
 
@@ -774,7 +740,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
             return true;
         };
         grid_options.doesExternalFilterPass = node => {
-            if (node.data.__type__ == "group") return true;
+            if (node.data.__type__ === "group") return true;
         }
         */
 
@@ -785,7 +751,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
             // remove all groups
             event.api.forEachNode(function(node) {
-                if (node.data.__type__ == 'group') {
+                if (node.data.__type__ === 'group') {
                     return;
                 }
                 rowData.push(node.data);
@@ -795,8 +761,8 @@ const DataGrid = React.forwardRef( (props, ref) => {
             //let columnState = grid_options.columnApi.getColumnState();
             let columnState = event.api.getColumnState();
             let sortedColumns = columnState.filter(column => column.sort !== null);
-            if (sortedColumns.length == 0) {
-                if (grid_options.group_by != "") {
+            if (sortedColumns.length === 0) {
+                if (grid_options.group_by !== "") {
                     // group all the data
                     rowData = group_data(rowData, grid_options.group_by);
 
@@ -849,18 +815,18 @@ const DataGrid = React.forwardRef( (props, ref) => {
             items.sort((a, b) => {
                 let a_value = a[group_by];
                 let b_value = b[group_by];
-                if (!a_value || a_value == "") {
+                if (!a_value || a_value === "") {
                     a_value = "ZZZ";
                 }
-                if (!b_value || b_value == "") {
+                if (!b_value || b_value === "") {
                     b_value = "ZZZ";
                 }
 
 
                 // If the group values are the same, then sort by the sort column if it exists
-                if (a_value == b_value) {
+                if (a_value === b_value) {
                     if (sort_column) {
-                        if (typeOf(a[sort_column]) == "string") {
+                        if (typeOf(a[sort_column]) === "string") {
                             return a[sort_column]?.localeCompare(b[sort_column]);
                         }
                         else {
@@ -882,16 +848,17 @@ const DataGrid = React.forwardRef( (props, ref) => {
                 }
    
                 // If both are not found, then sort by their value
-                if (a_index == -1 && b_index == -1) {
+                if (a_index === -1 && b_index === -1) {
                     return a_value.localeCompare(b_value);
                 }
    
-                if (a_index == -1) {
+                if (a_index === -1) {
                     return 1;
                 }
-                if (b_index == -1) {
+                if (b_index === -1) {
                     return -1;
                 }
+                return 0;
             });
         }
 
@@ -899,7 +866,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
         let group_data = [];
         items.forEach( item => {
             let group_value = item[group_by];
-            if (group_value != last_group_value) {
+            if (group_value !== last_group_value) {
                 let group_item = {
                     name: group_value,
                     column: group_by,
@@ -918,8 +885,10 @@ const DataGrid = React.forwardRef( (props, ref) => {
     }
 
     // TODO
+    /*
     const collapse_data = (data, collapse_by) => {
     }
+    */
 
 
 
@@ -982,7 +951,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
             //result[item.colId] = null;
             let column = item.colId;
             let parts = column.split("-");
-            if (parts.length == 3) {
+            if (parts.length === 3) {
                 columns.push(column);
             }
         });
@@ -999,7 +968,7 @@ const DataGrid = React.forwardRef( (props, ref) => {
 
             params.api?.forEachNodeAfterFilter((rowNode) => {
                 let data = rowNode.data[element];
-                if (!data && element != "budget") {
+                if (!data && element !== "budget") {
                     data = rowNode.data.work_hours[element];
                 }
                 if (data) {
@@ -1013,11 +982,11 @@ const DataGrid = React.forwardRef( (props, ref) => {
                             console.log("WARNING: " + e);
                         }
                     }
-                    //console.log("value: " + value , " == ", total);
+                    //console.log("value: " + value , " === ", total);
                 }
             });
 
-            if (element == "budget") {
+            if (element === "budget") {
                 target[element] = total;
             }
             else {

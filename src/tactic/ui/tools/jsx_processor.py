@@ -98,10 +98,10 @@ class JSXTranspile():
 
 
 
-    def cache_jsx(cls, jsx_path, jsx, top=None):
+    def cache_jsx(cls, jsx_path, jsx=None, top=None):
         '''Onload JSX with caching'''
 
-        tactic_mode = os.environ['TACTIC_MODE']
+        tactic_mode = os.environ.get('TACTIC_MODE') or "development"
         is_dev_mode = False
         if tactic_mode == "development":
             is_dev_mode = True
@@ -144,6 +144,12 @@ class JSXTranspile():
         if js == None:
 
             from tactic.ui.tools import JSXTranspile
+
+            if not jsx:
+
+                f = open(jsx_path, "r")
+                jsx = f.read()
+                f.close()
 
             # transpile the jsx into js
             if is_dev_mode:
